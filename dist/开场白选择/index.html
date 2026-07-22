@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>山女 · 开场白选择</title>
+<style>
+  :root {
+    --paper-cream: #f5ecd7;
+    --ink-brown: #5a4635;
+    --accent-primary: #b48a60;
+    --accent-secondary: #2a2a2a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 12px;
+    font-family: "BoutiqueBitmap9x9", "Noto Serif SC", "Songti SC", Georgia, serif;
+    color: var(--ink-brown);
+    line-height: 1.45;
+    letter-spacing: 0.02em;
+  }
+
+  .preset-panel {
+    width: 100%;
+    max-width: clamp(280px, 92vw, 520px);
+    margin: 0 auto;
+    padding: 18px 16px 20px;
+    border: 1px solid rgba(90, 70, 53, 0.35);
+    border-radius: 12px;
+    background: radial-gradient(700px 300px at 20% 10%, rgba(199, 162, 123, 0.15), transparent),
+                linear-gradient(180deg, #f8f1e4, #efe6d4);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+
+  .panel-header { margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid rgba(90, 70, 53, 0.35); }
+  .panel-title  { margin: 0 0 8px; font-size: 22px; font-weight: 500; color: var(--accent-primary); text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5); }
+  .panel-desc   { margin: 0; font-size: 13px; color: #4a3c2b; }
+
+  .option-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .option-card {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px;
+    border: 1px solid rgba(90, 70, 53, 0.28);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.35);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    user-select: none;
+  }
+  .option-card:hover { transform: translateY(-1px); box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.06), 0 4px 12px rgba(180, 138, 96, 0.15); }
+  .option-card--active {
+    border-color: var(--accent-primary);
+    background: rgba(255, 255, 255, 0.48);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.06), 0 0 10px rgba(180, 138, 96, 0.25);
+  }
+  .option-card--default { border-style: dashed; border-color: rgba(90, 70, 53, 0.2); background: rgba(255, 255, 255, 0.18); }
+  .option-card--busy { opacity: 0.7; pointer-events: none; }
+
+  .card-body { flex: 1; min-width: 0; }
+  .card-title { margin: 0 0 3px; font-size: 16px; font-weight: 600; color: var(--accent-secondary); }
+  .card-desc  { margin: 0; font-size: 13px; color: #4a3c2b; }
+
+  .card-btn {
+    flex-shrink: 0;
+    min-width: 72px; padding: 6px 18px;
+    border: 1px solid rgba(90, 70, 53, 0.35); border-radius: 8px;
+    font-family: inherit; font-size: 13px; font-weight: 500;
+    color: var(--accent-secondary);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(245, 236, 215, 0.75));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 1px 3px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .card-btn:hover { border-color: var(--accent-primary); background: linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(215, 182, 147, 0.35)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7), 0 2px 8px rgba(180, 138, 96, 0.2); }
+  .card-btn:active { transform: scale(0.98); }
+</style>
+</head>
+<body>
+
+<div class="preset-panel">
+  <header class="panel-header">
+    <h1 class="panel-title">山女 · 开场白</h1>
+    <p class="panel-desc">请选择想要体验的开局 — 点击卡片即可跳转</p>
+  </header>
+
+  <div class="option-list" id="openingList"></div>
+</div>
+
+<script>
+/* 开场白名称、描述与其在角色卡中的 swipe_id 对应关系 */
+const OPENINGS = [
+  { id: 'default', name: '默认开场白', desc: '菜单式开场，由此跳转到其他开局', swipe: 0 },
+  { id: 'yamame',  name: '山女开局',     desc: '故事从山女的出现开始',             swipe: 1 },
+  { id: 'wendigo', name: '温迪戈开局',   desc: '你找到第一个温迪戈，她还刚刚出生', swipe: 2 },
+  { id: 'shrine',  name: '神社开局',     desc: '神社已经建立，管理神社，供奉山女', swipe: 3 },
+  { id: 'ranch',   name: '人类牧场开局', desc: '暴力统治已经建立，村落变成牧场',   swipe: 4 },
+];
+
+const $list = document.getElementById('openingList');
+let currentSwipe = 0;
+let busy = false;
+
+async function init() {
+  // 读取当前生效的 swipe_id
+  try {
+    const msgs = getChatMessages(0, { include_swipes: true });
+    if (msgs && msgs[0]) {
+      currentSwipe = msgs[0].swipe_id || 0;
+    }
+  } catch (_) { /* 读取失败则默认 0 */ }
+  render();
+}
+
+function render() {
+  $list.innerHTML = '';
+  OPENINGS.forEach(o => {
+    const card = document.createElement('div');
+    card.className = 'option-card';
+    if (o.swipe === currentSwipe) card.classList.add('option-card--active');
+    if (o.id === 'default') card.classList.add('option-card--default');
+
+    card.innerHTML =
+      '<div class="card-body">' +
+        '<h2 class="card-title">' + o.name + '</h2>' +
+        '<p class="card-desc">' + o.desc + '</p>' +
+      '</div>';
+
+    const btn = document.createElement('button');
+    btn.className = 'card-btn';
+    btn.textContent = o.swipe === currentSwipe ? '当前' : '跳转';
+    btn.addEventListener('click', e => { e.stopPropagation(); select(o.swipe); });
+    card.appendChild(btn);
+
+    card.addEventListener('click', () => select(o.swipe));
+    $list.appendChild(card);
+  });
+}
+
+async function select(index) {
+  if (busy || index === currentSwipe) return;
+  busy = true;
+
+  document.querySelectorAll('.option-card').forEach(c => c.classList.add('option-card--busy'));
+
+  try {
+    await setChatMessages([{ message_id: 0, swipe_id: index }], { refresh: 'all' });
+    currentSwipe = index;
+    render();
+  } catch (e) {
+    toastr.error('切换失败：' + e.message);
+  } finally {
+    busy = false;
+  }
+}
+
+init();
+</script>
+
+</body>
+</html>
