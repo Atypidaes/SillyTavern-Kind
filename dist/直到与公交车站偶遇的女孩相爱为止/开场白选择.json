@@ -1,0 +1,193 @@
+```
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>开场白选择器</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+  .opn{ --txt:#eaeaea; --sub:#9fa6b2; --dim:#6b7280; --brd:rgba(255,255,255,.10); font-family:'Inter','Noto Sans SC',system-ui,'PingFang SC','Microsoft YaHei',sans-serif; color:var(--txt); -webkit-font-smoothing:antialiased; }
+  .opn-card{ display:flex; flex-direction:column; gap:10px; max-width:600px; margin:0 auto; padding:16px; border:1px solid var(--brd); border-radius:12px; background:#121212; box-shadow:0 8px 20px rgba(0,0,0,.25); }
+  .opn-head{ display:flex; align-items:center; gap:.6em; padding-bottom:8px; margin-bottom:8px; border-bottom:1px solid var(--brd); }
+  .opn-head-ico{ width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.06); box-shadow:inset 0 0 6px rgba(0,0,0,.35); }
+  .opn-head-ico svg{ width:15px; height:15px; }
+  .opn-title{ font-size:20px; font-weight:500; color:#fff; text-shadow:0 0 10px rgba(255,255,255,.10); letter-spacing:.01em; }
+  .opn-head-sub{ margin-left:auto; font-size:12px; color:var(--dim); letter-spacing:2px; }
+  .opn-hero{ position:relative; height:200px; border-radius:12px; overflow:hidden; border:1px solid var(--brd); background:#0d0d0e; box-shadow:inset 0 0 10px rgba(0,0,0,.45); }
+  .opn-pic-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(16px) brightness(.4); transform:scale(1.12); }
+  .opn-pic{ position:relative; width:100%; height:100%; object-fit:contain; display:block; }
+  .opn-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+  .opn-btn{ display:flex; flex-direction:column; align-items:center; gap:7px; padding:10px 8px; min-height:96px; border-radius:10px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); box-shadow:inset 0 0 10px rgba(0,0,0,.12); color:var(--txt); cursor:pointer; font-family:inherit; transition:border-color .2s, background .2s, box-shadow .2s; }
+  .opn-btn:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); }
+  .opn-btn.cur{ border-color:rgba(255,255,255,.45); background:rgba(255,255,255,.09); box-shadow:0 0 14px rgba(255,255,255,.12), inset 0 0 10px rgba(0,0,0,.12); }
+  .opn-btn.off{ opacity:.4; cursor:not-allowed; }
+  .opn-btn-no{ width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:600; color:var(--sub); border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.3); }
+  .opn-btn.cur .opn-btn-no{ color:#121212; background:#fff; border-color:#fff; font-weight:700; }
+  .opn-btn-txt{ font-size:11px; line-height:1.5; color:var(--sub); text-align:left; }
+  .opn-btn.cur .opn-btn-txt{ color:var(--txt); }
+  .opn-btn-tag{ font-size:10px; letter-spacing:1px; color:var(--dim); }
+  .opn-btn.cur .opn-btn-tag{ color:#fff; }
+  .opn-toggle{ display:flex; flex-direction:column; gap:5px; padding:11px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); box-shadow:inset 0 0 10px rgba(0,0,0,.12); cursor:pointer; color:var(--txt); font-family:inherit; text-align:left; transition:border-color .2s, background .2s; }
+  .opn-toggle:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); }
+  .opn-tg-top{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#fff; }
+  .opn-tg-top svg{ width:13px; height:13px; }
+  .opn-tg-state{ font-variant-numeric:tabular-nums; }
+  .opn-tg-state.on{ color:#7fd49a; }
+  .opn-tg-state.off{ color:var(--dim); }
+  .opn-tg-txt{ font-size:11px; line-height:1.5; color:var(--dim); }
+  @media (max-width:480px){ .opn-card{ padding:12px; } .opn-title{ font-size:17px; } .opn-btn{ min-height:0; padding:8px 6px; } .opn-btn-txt{ font-size:10px; } }
+</style>
+</head>
+<body>
+<div class="opn">
+  <div class="opn-card">
+    <div class="opn-head">
+      <span class="opn-head-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span>
+      <span class="opn-title">开场白选择</span>
+      <span class="opn-head-sub">选择开局</span>
+    </div>
+
+    <div class="opn-hero">
+      <!-- 插图：加载失败时脚本自动退回占位图 -->
+      <img class="opn-pic-bg" alt="" src="">
+      <img class="opn-pic" alt="" src="">
+    </div>
+
+    <div class="opn-row">
+      <button class="opn-btn" type="button" data-sw="1">
+        <span class="opn-btn-no">一</span>
+        <span class="opn-btn-txt">你与菱川日和已经构建了良好的关系，现在可以较轻松的开始交往</span>
+        <span class="opn-btn-tag">当前开局</span>
+      </button>
+      <button class="opn-btn" type="button" data-sw="2">
+        <span class="opn-btn-no">二</span>
+        <span class="opn-btn-txt">菱川日和请求在周末去你的家里，之前的经历让你知道，这是和菱川日和迈进下一步的机会</span>
+        <span class="opn-btn-tag">当前开局</span>
+      </button>
+      <button class="opn-btn" type="button" data-sw="3">
+        <span class="opn-btn-no">三</span>
+        <span class="opn-btn-txt">暑假开始，菱川日和已经开始和你同居，这是一份甜腻的生活</span>
+        <span class="opn-btn-tag">当前开局</span>
+      </button>
+    </div>
+
+    <button class="opn-toggle" type="button" id="opn-tg">
+      <span class="opn-tg-top">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9M8 5.2A7 7 0 1 0 16 5.2"/></svg>
+        <span>状态栏</span>
+        <span class="opn-tg-state" id="opn-tg-state">开</span>
+      </span>
+      <span class="opn-tg-txt">这是原作品中主角的第一个外挂，可以打开状态栏，第二个外挂正在全力制作中</span>
+    </button>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  try {
+    var root = document.currentScript && document.currentScript.previousElementSibling;
+    if (!root || !root.classList || !root.classList.contains('opn')) {
+      var all = document.querySelectorAll('.opn');
+      root = all.length ? all[all.length - 1] : null;
+    }
+    if (!root) return;
+
+    var fn = function(name) {
+      if (typeof window[name] === 'function') return window[name];
+      if (window.TavernHelper && typeof window.TavernHelper[name] === 'function') return window.TavernHelper[name].bind(window.TavernHelper);
+      return null;
+    };
+    var getChat = fn('getChatMessages');
+    var setChat = fn('setChatMessages');
+    var getRe = fn('getTavernRegexes');
+    var updRe = fn('updateTavernRegexesWith');
+
+    /* 插图：加载失败时退回占位图 */
+    var pic = root.querySelector('.opn-pic');
+    var picBg = root.querySelector('.opn-pic-bg');
+    if (pic) {
+      var ph = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320">'
+        + '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1d24"/><stop offset="1" stop-color="#0d0d0e"/></linearGradient></defs>'
+        + '<rect width="240" height="320" fill="url(#g)"/>'
+        + '<circle cx="120" cy="116" r="46" fill="#3f4350"/>'
+        + '<path d="M50 306 q10-74 70-74 q60 0 70 74 z" fill="#3f4350"/>'
+        + '<text x="120" y="278" text-anchor="middle" fill="#8b90a5" font-size="14" font-family="sans-serif" letter-spacing="3">插图占位</text>'
+        + '</svg>');
+      pic.onerror = function() { pic.onerror = null; pic.src = ph; if (picBg) picBg.src = ph; };
+      if (!pic.getAttribute('src')) {
+        pic.src = 'https://files.catbox.moe/scqrha.jpg';
+        if (picBg) picBg.src = pic.src;
+      }
+    }
+
+    /* 用酒馆人名替换 {{user}}（若正则已替换则无匹配，无害） */
+    var persona = '';
+    try {
+      if (window.SillyTavern && window.SillyTavern.getContext) persona = SillyTavern.getContext().name2 || '';
+    } catch (e) {}
+    if (persona) {
+      root.querySelectorAll('.opn-btn-txt').forEach(function(el){
+        el.textContent = el.textContent.split('{{user}}').join(persona);
+      });
+    }
+
+    /* 当前开局高亮 */
+    var curSw = -1, swipeCount = 0;
+    if (getChat) {
+      var msgs = getChat(0, { include_swipes: true }) || [];
+      if (msgs.length) { curSw = parseInt(msgs[0].swipe_id, 10); swipeCount = (msgs[0].swipes || []).length; }
+    }
+    root.querySelectorAll('.opn-btn').forEach(function(btn){
+      var n = parseInt(btn.getAttribute('data-sw'), 10);
+      var isCur = (n === curSw);
+      btn.classList.toggle('cur', isCur);
+      var tag = btn.querySelector('.opn-btn-tag');
+      if (tag) tag.textContent = isCur ? '当前开局' : '点击开始';
+      if (swipeCount && n >= swipeCount) btn.classList.add('off');
+    });
+
+    /* 点击跳转开局 */
+    root.querySelectorAll('.opn-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (btn.classList.contains('off')) return;
+        var n = parseInt(btn.getAttribute('data-sw'), 10);
+        if (!setChat) return;
+        setChat([{ message_id: 0, swipe_id: n }]).catch(function(){});
+      });
+    });
+
+    /* 状态栏开关 */
+    var tg = root.querySelector('#opn-tg');
+    var tgState = root.querySelector('#opn-tg-state');
+    var isOn = true;
+    if (getRe) {
+      var res = getRe({ type: 'character' }) || [];
+      var sb = res.filter(function(r){ return r && r.script_name === '日和状态栏'; })[0];
+      if (sb) isOn = !!sb.enabled;
+    }
+    function paintState() {
+      if (!tgState) return;
+      tgState.textContent = isOn ? '开' : '关';
+      tgState.className = 'opn-tg-state ' + (isOn ? 'on' : 'off');
+      document.querySelectorAll('.hrb').forEach(function(el){ el.style.display = isOn ? '' : 'none'; });
+    }
+    paintState();
+    if (tg) {
+      tg.addEventListener('click', function(){
+        isOn = !isOn;
+        paintState();
+        if (updRe) {
+          updRe(function(list){
+            list.forEach(function(r){ if (r && r.script_name === '日和状态栏') r.enabled = isOn; });
+            return list;
+          }, { type: 'character' }).catch(function(){});
+        }
+      });
+    }
+  } catch (e) { /* 酒馆环境缺失时静默 */ }
+})();
+</script>
+</body>
+</html>
+
+```
