@@ -26,14 +26,6 @@
   .opn-btn.cur .opn-btn-txt{ color:var(--txt); }
   .opn-btn-tag{ font-size:10px; letter-spacing:1px; color:var(--dim); }
   .opn-btn.cur .opn-btn-tag{ color:#fff; }
-  .opn-toggle{ display:flex; flex-direction:column; gap:5px; padding:11px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); box-shadow:inset 0 0 10px rgba(0,0,0,.12); cursor:pointer; color:var(--txt); font-family:inherit; text-align:left; transition:border-color .2s, background .2s; }
-  .opn-toggle:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); }
-  .opn-tg-top{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:#fff; }
-  .opn-tg-top svg{ width:13px; height:13px; }
-  .opn-tg-state{ font-variant-numeric:tabular-nums; }
-  .opn-tg-state.on{ color:#7fd49a; }
-  .opn-tg-state.off{ color:var(--dim); }
-  .opn-tg-txt{ font-size:11px; line-height:1.5; color:var(--dim); }
   @media (max-width:480px){ .opn-card{ padding:12px; } .opn-title{ font-size:17px; } .opn-btn{ min-height:0; padding:8px 6px; } .opn-btn-txt{ font-size:10px; } }
 </style>
 </head>
@@ -55,29 +47,20 @@
     <div class="opn-row">
       <button class="opn-btn" type="button" data-sw="1">
         <span class="opn-btn-no">一</span>
-        <span class="opn-btn-txt">你与菱川日和已经构建了良好的关系，现在可以较轻松的开始交往</span>
+        <span class="opn-btn-txt">{{user}}与菱川日和已经构建了良好的关系，现在可以较轻松的开始交往</span>
         <span class="opn-btn-tag">当前开局</span>
       </button>
       <button class="opn-btn" type="button" data-sw="2">
         <span class="opn-btn-no">二</span>
-        <span class="opn-btn-txt">菱川日和请求在周末去你的家里，之前的经历让你知道，这是和菱川日和迈进下一步的机会</span>
+        <span class="opn-btn-txt">菱川日和请求在周末去{{user}}的家里，之前的经历让{{user}}知道，这是和菱川日和迈进下一步的机会</span>
         <span class="opn-btn-tag">当前开局</span>
       </button>
       <button class="opn-btn" type="button" data-sw="3">
         <span class="opn-btn-no">三</span>
-        <span class="opn-btn-txt">暑假开始，菱川日和已经开始和你同居，这是一份甜腻的生活</span>
+        <span class="opn-btn-txt">暑假开始，菱川日和已经开始和{{user}}同居，这是一份粘腻的生活</span>
         <span class="opn-btn-tag">当前开局</span>
       </button>
     </div>
-
-    <button class="opn-toggle" type="button" id="opn-tg">
-      <span class="opn-tg-top">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9M8 5.2A7 7 0 1 0 16 5.2"/></svg>
-        <span>状态栏</span>
-        <span class="opn-tg-state" id="opn-tg-state">开</span>
-      </span>
-      <span class="opn-tg-txt">这是原作品中主角的第一个外挂，可以打开状态栏，第二个外挂正在全力制作中</span>
-    </button>
   </div>
 </div>
 <script>
@@ -98,8 +81,6 @@
     };
     var getChat = fn('getChatMessages');
     var setChat = fn('setChatMessages');
-    var getRe = fn('getTavernRegexes');
-    var updRe = fn('updateTavernRegexesWith');
 
     /* 插图：加载失败时退回占位图 */
     var pic = root.querySelector('.opn-pic');
@@ -154,9 +135,6 @@
         setChat([{ message_id: 0, swipe_id: n }]).catch(function(){});
       });
     });
-
-      });
-    }
   } catch (e) { /* 酒馆环境缺失时静默 */ }
 })();
 </script>
