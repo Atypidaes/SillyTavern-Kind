@@ -47,17 +47,17 @@
     <div class="opn-row">
       <button class="opn-btn" type="button" data-sw="1">
         <span class="opn-btn-no">一</span>
-        <span class="opn-btn-txt">{{user}}与菱川日和已经构建了良好的关系，现在可以较轻松的开始交往</span>
+        <span class="opn-btn-txt">故事的开始，{{user}}在公交车站偶遇了一位女孩</span>
         <span class="opn-btn-tag">当前开局</span>
       </button>
       <button class="opn-btn" type="button" data-sw="2">
         <span class="opn-btn-no">二</span>
-        <span class="opn-btn-txt">菱川日和请求在周末去{{user}}的家里，之前的经历让{{user}}知道，这是和菱川日和迈进下一步的机会</span>
+        <span class="opn-btn-txt">{{user}}与菱川日和已经构建了良好的关系，现在可以较轻松的开始交往</span>
         <span class="opn-btn-tag">当前开局</span>
       </button>
       <button class="opn-btn" type="button" data-sw="3">
         <span class="opn-btn-no">三</span>
-        <span class="opn-btn-txt">暑假开始，菱川日和已经开始和{{user}}同居，这是一份粘腻的生活</span>
+        <span class="opn-btn-txt">暑假开始，菱川日和已经开始和{{user}}同居，这是一份甜腻的生活</span>
         <span class="opn-btn-tag">当前开局</span>
       </button>
     </div>
@@ -98,17 +98,6 @@
         pic.src = 'https://files.catbox.moe/scqrha.jpg';
         if (picBg) picBg.src = pic.src;
       }
-    }
-
-    /* 用酒馆人名替换 {{user}}（若正则已替换则无匹配，无害） */
-    var persona = '';
-    try {
-      if (window.SillyTavern && window.SillyTavern.getContext) persona = SillyTavern.getContext().name2 || '';
-    } catch (e) {}
-    if (persona) {
-      root.querySelectorAll('.opn-btn-txt').forEach(function(el){
-        el.textContent = el.textContent.split('{{user}}').join(persona);
-      });
     }
 
     /* 当前开局高亮 */
