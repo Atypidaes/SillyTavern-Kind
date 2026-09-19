@@ -1,0 +1,364 @@
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>开场白选择器</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+  .opn{ --txt:#eaeaea; --sub:#9fa6b2; --dim:#6b7280; --brd:rgba(255,255,255,.10); --on:#ff9d5c; font-family:'Inter','Noto Sans SC',system-ui,'PingFang SC','Microsoft YaHei',sans-serif; color:var(--txt); -webkit-font-smoothing:antialiased; }
+  .opn-card{ display:flex; flex-direction:column; gap:10px; max-width:600px; margin:0 auto; padding:16px; border:1px solid var(--brd); border-radius:12px; background:#121212; box-shadow:0 8px 20px rgba(0,0,0,.25); }
+  .opn-head{ display:flex; align-items:center; gap:.6em; padding-bottom:8px; margin-bottom:8px; border-bottom:1px solid var(--brd); }
+  .opn-head-ico{ width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:rgba(255,255,255,.06); box-shadow:inset 0 0 6px rgba(0,0,0,.35); }
+  .opn-head-ico svg{ width:15px; height:15px; }
+  .opn-title{ font-size:20px; font-weight:500; color:#fff; text-shadow:0 0 10px rgba(255,255,255,.10); letter-spacing:.01em; }
+  .opn-head-sub{ margin-left:auto; font-size:12px; color:var(--dim); letter-spacing:2px; }
+
+  /* 长条开场白 */
+  .opn-list{ display:flex; flex-direction:column; gap:8px; }
+  .opn-bar{ border-radius:10px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); box-shadow:inset 0 0 10px rgba(0,0,0,.12); cursor:pointer; transition:border-color .2s, background .2s; overflow:hidden; }
+  .opn-bar:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); }
+  .opn-bar.open{ border-color:rgba(255,255,255,.35); }
+  .opn-bar.cur{ border-color:rgba(255,255,255,.45); background:rgba(255,255,255,.09); box-shadow:0 0 14px rgba(255,255,255,.12), inset 0 0 10px rgba(0,0,0,.12); }
+  .opn-bar.off{ opacity:.4; cursor:not-allowed; }
+  .opn-bar-main{ display:grid; grid-template-columns:auto 1fr auto auto; column-gap:10px; align-items:center; padding:10px 12px; }
+  .opn-btn-no{ width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:600; color:var(--sub); border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.3); }
+  .opn-bar.cur .opn-btn-no{ color:#121212; background:#fff; border-color:#fff; font-weight:700; }
+  .opn-bar-txt{ font-size:13px; line-height:1.5; color:var(--sub); }
+  .opn-bar.cur .opn-bar-txt{ color:var(--txt); }
+  .opn-btn-tag{ font-size:10px; letter-spacing:1px; color:var(--dim); white-space:nowrap; }
+  .opn-bar.cur .opn-btn-tag{ color:#fff; }
+  .opn-chev{ width:14px; height:14px; color:var(--dim); transition:transform .25s ease; }
+  .opn-bar.open .opn-chev{ transform:rotate(180deg); }
+
+  /* 展开区 */
+  .opn-expand{ display:none; padding:0 12px 12px; }
+  .opn-bar.open .opn-expand{ display:flex; flex-direction:column; gap:10px; }
+  .opn-expand-pic{ width:100%; border-radius:10px; overflow:hidden; border:1px solid var(--brd); background:#0d0d0e; box-shadow:inset 0 0 10px rgba(0,0,0,.45); }
+  .opn-expand-img{ display:block; width:100%; aspect-ratio:3/4; object-fit:cover; }
+  /* 跳转按钮：长条状占满整行 */
+  .opn-jump{ width:100%; padding:10px 0; border-radius:8px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.10); color:#fff; font-size:14px; font-weight:500; font-family:inherit; cursor:pointer; transition:background .2s, box-shadow .2s; }
+  .opn-jump:hover{ background:rgba(255,255,255,.22); box-shadow:0 0 10px rgba(255,255,255,.15); }
+
+  /* DLC 开关 */
+  .opn-dlc{ display:flex; flex-direction:column; gap:8px; }
+  .opn-toggle{ display:grid; grid-template-columns:auto 1fr auto; column-gap:10px; align-items:center; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); box-shadow:inset 0 0 10px rgba(0,0,0,.12); color:var(--txt); cursor:pointer; font-family:inherit; text-align:left; transition:border-color .2s, background .2s; }
+  .opn-toggle:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); }
+  .opn-tg-name{ font-size:13px; font-weight:500; color:#fff; white-space:nowrap; }
+  .opn-tg-desc{ font-size:11px; line-height:1.5; color:var(--sub); }
+  .opn-tg-state{ min-width:34px; text-align:center; font-size:11px; letter-spacing:1px; padding:4px 8px; border-radius:999px; border:1px solid rgba(255,255,255,.15); color:var(--dim); background:rgba(0,0,0,.3); }
+  .opn-toggle.on .opn-tg-state{ color:#121212; background:var(--on); border-color:var(--on); font-weight:600; box-shadow:0 0 10px rgba(255,157,92,.35); }
+  .opn-toggle.on{ border-color:rgba(255,157,92,.35); }
+  @media (max-width:480px){ .opn-card{ padding:12px; } .opn-title{ font-size:17px; } .opn-bar-main{ padding:8px 10px; column-gap:8px; } .opn-bar-txt{ font-size:12px; } .opn-toggle{ grid-template-columns:1fr auto; } .opn-tg-desc{ grid-column:1 / -1; } }
+</style>
+</head>
+<body>
+<div class="opn">
+  <div class="opn-card">
+    <div class="opn-head">
+      <span class="opn-head-ico"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span>
+      <span class="opn-title">开场白选择</span>
+      <span class="opn-head-sub">选择开局</span>
+    </div>
+
+    <div class="opn-list">
+      <div class="opn-bar" data-sw="1">
+        <div class="opn-bar-main">
+          <span class="opn-btn-no">一</span>
+          <span class="opn-bar-txt">傍晚回到神社，赤目在暮色中等候你归来</span>
+          <span class="opn-btn-tag">当前开局</span>
+          <svg class="opn-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="opn-expand">
+          <div class="opn-expand-pic"><img class="opn-expand-img" alt="" src=""></div>
+          <button class="opn-jump" type="button">跳转开场白</button>
+        </div>
+      </div>
+      <div class="opn-bar" data-sw="2">
+        <div class="opn-bar-main">
+          <span class="opn-btn-no">二</span>
+          <span class="opn-bar-txt">下山采购，在村中遇到被鬼族围住的忍者</span>
+          <span class="opn-btn-tag">当前开局</span>
+          <svg class="opn-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="opn-expand">
+          <div class="opn-expand-pic"><img class="opn-expand-img" alt="" src=""></div>
+          <button class="opn-jump" type="button">跳转开场白</button>
+        </div>
+      </div>
+      <div class="opn-bar" data-sw="3">
+        <div class="opn-bar-main">
+          <span class="opn-btn-no">三</span>
+          <span class="opn-bar-txt">下山途中，山路与黑衣武士相遇</span>
+          <span class="opn-btn-tag">当前开局</span>
+          <svg class="opn-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="opn-expand">
+          <div class="opn-expand-pic"><img class="opn-expand-img" alt="" src=""></div>
+          <button class="opn-jump" type="button">跳转开场白</button>
+        </div>
+      </div>
+      <div class="opn-bar" data-sw="4">
+        <div class="opn-bar-main">
+          <span class="opn-btn-no">四</span>
+          <span class="opn-bar-txt">双人登场，两位来客拜访神社</span>
+          <span class="opn-btn-tag">当前开局</span>
+          <svg class="opn-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="opn-expand">
+          <div class="opn-expand-pic"><img class="opn-expand-img" alt="" src=""></div>
+          <button class="opn-jump" type="button">跳转开场白</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="opn-dlc">
+      <button class="opn-toggle" type="button" data-dlc="widow">
+        <span class="opn-tg-name">赤目未亡人DLC</span>
+        <span class="opn-tg-desc">赤目以未亡人身份自卑，面对好感会以伦理制止，却又无法真正拒绝</span>
+        <span class="opn-tg-state">?</span>
+      </button>
+      <button class="opn-toggle" type="button" data-dlc="sph">
+        <span class="opn-tg-name">SPH</span>
+        <span class="opn-tg-desc">在性爱场景中加入相关癖好内容；如果不知道 SPH 是什么意思，请不要开启</span>
+        <span class="opn-tg-state">?</span>
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  try {
+    var root = document.currentScript && document.currentScript.previousElementSibling;
+    if (!root || !root.classList || !root.classList.contains('opn')) {
+      var all = document.querySelectorAll('.opn');
+      root = all.length ? all[all.length - 1] : null;
+    }
+    if (!root) return;
+
+    var fn = function(name) {
+      if (typeof window[name] === 'function') return window[name];
+      if (window.TavernHelper && typeof window.TavernHelper[name] === 'function') return window.TavernHelper[name].bind(window.TavernHelper);
+      if (window.TavernHelper && typeof window.TavernHelper[name] === 'object') return window.TavernHelper[name];
+      return null;
+    };
+    var getChat = fn('getChatMessages');
+    var setChat = fn('setChatMessages');
+
+    /* 各开场白插图（768x1024），按 swipe 序号填入链接，留空则显示占位图 */
+    var IMGS = {
+      '1': 'https://files.catbox.moe/xaausy.png',
+      '2': 'https://files.catbox.moe/2teff2.png',
+      '3': 'https://files.catbox.moe/27flz4.png',
+      '4': 'https://files.catbox.moe/svcrjd.png',
+    };
+
+    var PH = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 1024">'
+      + '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1d24"/><stop offset="1" stop-color="#0d0d0e"/></linearGradient></defs>'
+      + '<rect width="768" height="1024" fill="url(#g)"/>'
+      + '<circle cx="384" cy="420" r="150" fill="#3f4350"/>'
+      + '<path d="M160 1024 q44-240 224-240 q180 0 224 240 z" fill="#3f4350"/>'
+      + '<text x="384" y="880" text-anchor="middle" fill="#8b90a5" font-size="40" font-family="sans-serif" letter-spacing="8">插图占位</text>'
+      + '<text x="384" y="928" text-anchor="middle" fill="#5b6075" font-size="26" font-family="sans-serif" letter-spacing="4">768 x 1024</text>'
+      + '</svg>');
+
+    /* 当前开局高亮 */
+    var curSw = -1, swipeCount = 0;
+    if (getChat) {
+      var msgs = getChat(0, { include_swipes: true }) || [];
+      if (msgs.length) { curSw = parseInt(msgs[0].swipe_id, 10); swipeCount = (msgs[0].swipes || []).length; }
+    }
+    var bars = root.querySelectorAll('.opn-bar');
+    function paintSwipes() {
+      bars.forEach(function(bar){
+        var n = parseInt(bar.getAttribute('data-sw'), 10);
+        var isCur = (n === curSw);
+        bar.classList.toggle('cur', isCur);
+        var tag = bar.querySelector('.opn-btn-tag');
+        if (tag) tag.textContent = isCur ? '当前开局' : ' ';
+        if (swipeCount && n >= swipeCount) bar.classList.add('off');
+      });
+    }
+    paintSwipes();
+
+    /* 展开/收起：同一时间只展开一个；展开时懒加载插图 */
+    var opened = null;
+    bars.forEach(function(bar){
+      bar.addEventListener('click', function(ev){
+        if (bar.classList.contains('off')) return;
+        if (ev.target && ev.target.closest && ev.target.closest('.opn-jump')) return;
+        var wasOpen = bar.classList.contains('open');
+        if (opened) opened.classList.remove('open');
+        if (wasOpen) { opened = null; return; }
+        bar.classList.add('open');
+        opened = bar;
+        var img = bar.querySelector('.opn-expand-img');
+        if (img && !img.getAttribute('data-loaded')) {
+          img.setAttribute('data-loaded', '1');
+          var sw = bar.getAttribute('data-sw');
+          var src = IMGS[sw] || '';
+          img.onerror = function() { img.onerror = null; img.src = PH; };
+          img.src = src || PH;
+        }
+      });
+      var jump = bar.querySelector('.opn-jump');
+      if (jump) {
+        jump.addEventListener('click', function(ev){
+          ev.stopPropagation();
+          var n = parseInt(bar.getAttribute('data-sw'), 10);
+          if (!setChat) return;
+          setChat([{ message_id: 0, swipe_id: n }]).catch(function(){});
+        });
+      }
+    });
+
+    /* ------- DLC 开关 ------- */
+    var dlc = { widow: null, sph: null };
+    var PART = { widow: '未亡人', sph: 'SPH' };
+
+    function paintDlc() {
+      root.querySelectorAll('.opn-toggle').forEach(function(btn){
+        var key = btn.getAttribute('data-dlc');
+        var v = dlc[key];
+        var st = btn.querySelector('.opn-tg-state');
+        if (v === null || v === undefined) { st.textContent = '?'; btn.classList.remove('on'); }
+        else { st.textContent = v ? '开' : '关'; btn.classList.toggle('on', !!v); }
+      });
+    }
+
+    function readStatesSync() {
+      try {
+        var RC = null;
+        if (window.RawCharacter && window.RawCharacter.find) RC = window.RawCharacter;
+        if (!RC && window.TavernHelper && window.TavernHelper.RawCharacter && window.TavernHelper.RawCharacter.find) RC = window.TavernHelper.RawCharacter;
+        if (!RC) return null;
+        var card = RC.find({ name: 'current' });
+        var book = card && card.getCharacterBook ? card.getCharacterBook() : null;
+        if (!book || !book.entries) return null;
+        var st = {};
+        book.entries.forEach(function(e){
+          var on = (typeof e.enabled === 'boolean') ? e.enabled : !e.disable;
+          var cm = String(e.comment || '');
+          if (cm.indexOf('未亡人') !== -1) st.widow = on;
+          if (cm.indexOf('SPH') !== -1) st.sph = on;
+        });
+        return st;
+      } catch (e) { console.warn('[开场白选择器] readStatesSync 失败', e); return null; }
+    }
+    async function readStatesAsync() {
+      try {
+        var gw = fn('getCharWorldbookNames'), gb = fn('getWorldbook');
+        if (!gw || !gb) return null;
+        var names = gw('current') || {};
+        var primary = names.primary;
+        if (!primary) return null;
+        var book = await gb(primary);
+        if (!book) return null;
+        var st = {};
+        book.forEach(function(e){
+          var nm = String(e.name || '');
+          if (nm.indexOf('未亡人') !== -1) st.widow = !!e.enabled;
+          if (nm.indexOf('SPH') !== -1) st.sph = !!e.enabled;
+        });
+        return st;
+      } catch (e) { console.warn('[开场白选择器] readStatesAsync 失败', e); return null; }
+    }
+
+    async function flipEntry(part, enable) {
+      var uc = fn('updateCharacterWith');
+      if (uc) {
+        try {
+          var ok = false;
+          await uc('current', function(c) {
+            var book = (c.data && c.data.character_book) || c.character_book || c.characterBook;
+            if (!book || !book.entries) throw new Error('找不到角色书');
+            var list = Array.isArray(book.entries) ? book.entries : Object.values(book.entries);
+            list.forEach(function(e){
+              if (String(e.comment || '').indexOf(part) !== -1) {
+                if (typeof e.enabled === 'boolean') e.enabled = enable;
+                if (typeof e.disable === 'boolean') e.disable = !enable;
+                ok = true;
+              }
+            });
+            if (!ok) throw new Error('找不到条目: ' + part);
+            return c;
+          });
+          if (ok) return true;
+        } catch (e) { console.warn('[开场白选择器] updateCharacterWith 失败: ' + e.message); }
+      }
+      var uw = fn('updateWorldbookWith'), gw = fn('getCharWorldbookNames');
+      if (uw && gw) {
+        try {
+          var names = gw('current') || {};
+          var primary = names.primary;
+          if (primary) {
+            var hit = false;
+            await uw(primary, function(entries) {
+              entries.forEach(function(e){
+                if (String(e.name || '').indexOf(part) !== -1) { e.enabled = enable; hit = true; }
+              });
+              if (!hit) throw new Error('找不到条目: ' + part);
+              return entries;
+            });
+            if (hit) return true;
+          }
+        } catch (e) { console.warn('[开场白选择器] updateWorldbookWith 失败: ' + e.message); }
+      }
+      if (window.SillyTavern && typeof SillyTavern.loadWorldInfo === 'function' && typeof SillyTavern.saveWorldInfo === 'function') {
+        try {
+          var charName = '';
+          if (window.TavernHelper && typeof window.TavernHelper.getCurrentCharacterName === 'function') charName = window.TavernHelper.getCurrentCharacterName();
+          if (!charName && window.SillyTavern.getContext) charName = SillyTavern.getContext().name2;
+          if (charName) {
+            var book = await SillyTavern.loadWorldInfo(charName);
+            if (book && book.entries) {
+              var list = Array.isArray(book.entries) ? book.entries : Object.values(book.entries);
+              var hit = false;
+              list.forEach(function(e){
+                if (String(e.comment || '').indexOf(part) !== -1) {
+                  if (typeof e.enabled === 'boolean') e.enabled = enable;
+                  if (typeof e.disable === 'boolean') e.disable = !enable;
+                  hit = true;
+                }
+              });
+              if (hit) { await SillyTavern.saveWorldInfo(charName, book, true); return true; }
+            }
+          }
+        } catch (e) { console.warn('[开场白选择器] saveWorldInfo 失败: ' + e.message); }
+      }
+      return false;
+    }
+
+    function toast(msg) {
+      if (typeof toastr !== 'undefined' && toastr.warning) toastr.warning(msg);
+      else if (window.SillyTavern && SillyTavern.getContext && SillyTavern.getContext().chat) console.warn(msg);
+    }
+
+    root.querySelectorAll('.opn-toggle').forEach(function(btn){
+      btn.addEventListener('click', async function(){
+        var key = btn.getAttribute('data-dlc');
+        if (dlc[key] === null || dlc[key] === undefined) return;
+        var target = !dlc[key];
+        var ok = await flipEntry(PART[key], target);
+        if (ok) { dlc[key] = target; paintDlc(); }
+        else toast('[开场白选择器] 修改世界书条目失败（' + PART[key] + '），请打开控制台查看日志');
+      });
+    });
+
+    var st = readStatesSync();
+    if (st && st.widow !== undefined) dlc.widow = !!st.widow;
+    if (st && st.sph !== undefined) dlc.sph = !!st.sph;
+    paintDlc();
+    if (dlc.widow === null || dlc.sph === null) {
+      readStatesAsync().then(function(st2){
+        if (!st2) return;
+        if (dlc.widow === null && st2.widow !== undefined) dlc.widow = !!st2.widow;
+        if (dlc.sph === null && st2.sph !== undefined) dlc.sph = !!st2.sph;
+        paintDlc();
+      });
+    }
+  } catch (e) { /* 酒馆环境缺失时静默 */ }
+})();
+</script>
+</body>
+</html>
