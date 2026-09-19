@@ -1,0 +1,444 @@
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>赤目状态栏</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+  .akm{ --txt:#eaeaea; --sub:#9fa6b2; --dim:#6b7280; --warm:#ff9d5c; --cold:#7fa8f7; --brd:rgba(255,255,255,.10); --acc:#fff; --acc-glow:rgba(255,255,255,.10); --card-bg:#121212; font-family:'Inter','Noto Sans SC',system-ui,'PingFang SC','Microsoft YaHei',sans-serif; color:var(--txt); -webkit-font-smoothing:antialiased; }
+  /* 角色主题色：斋藤圆保持默认黑色 */
+  .akm[data-char="赤目"]{ --acc:#f7b7cc; --acc-glow:rgba(247,183,204,.40); --card-bg:#1a1116; }
+  .akm[data-char="铃女"]{ --acc:#b39bff; --acc-glow:rgba(179,155,255,.40); --card-bg:#14111e; }
+  .akm-card{ display:flex; flex-direction:column; gap:10px; max-width:600px; margin:0 auto; padding:16px; border:1px solid var(--brd); border-radius:12px; background:var(--card-bg); box-shadow:0 8px 20px rgba(0,0,0,.25); }
+
+  /* 主体：左侧立绘，右侧信息 */
+  .akm-main{ display:flex; gap:12px; align-items:flex-start; }
+  .akm-pic-col{ width:36%; max-width:172px; min-width:104px; display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+  /* 翻转卡片：正面 sfw，点击后翻到背面 nsfw */
+  .akm-flip{ position:relative; width:100%; aspect-ratio:3/4; border-radius:10px; perspective:800px; }
+  .akm-flip-inner{ position:absolute; inset:0; transform-style:preserve-3d; transition:transform .6s ease; }
+  .akm-flip.flipped .akm-flip-inner{ transform:rotateY(180deg); }
+  .akm-face{ position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:10px; overflow:hidden; border:1px solid var(--brd); background:#0d0d0e; box-shadow:inset 0 0 10px rgba(0,0,0,.45); }
+  .akm-face-back{ transform:rotateY(180deg); }
+  .akm-pic-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(16px) brightness(.4); transform:scale(1.12); }
+  .akm-pic{ position:relative; width:100%; height:100%; object-fit:contain; display:block; }
+  /* 左右切换箭头 */
+  .akm-arrow{ position:absolute; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; border:1px solid rgba(255,255,255,.15); background:rgba(18,18,18,.55); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); color:#fff; display:grid; place-items:center; cursor:pointer; z-index:3; transition:background .2s, border-color .2s; }
+  .akm-arrow:hover{ background:rgba(255,255,255,.16); border-color:var(--acc); }
+  .akm-arrow svg{ width:12px; height:12px; }
+  .akm-arrow-l{ left:6px; }
+  .akm-arrow-r{ right:6px; }
+  .akm-pic-cap{ display:flex; align-items:center; gap:5px; padding:0 2px; }
+  .akm-pic-cap b{ font-size:14px; font-weight:500; color:var(--acc); text-shadow:0 0 8px var(--acc-glow); white-space:nowrap; }
+  .akm-pic-cap i{ font-style:normal; font-size:10px; color:var(--sub); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .akm-flip-hint{ padding:0 2px; font-size:10px; letter-spacing:1px; color:var(--acc); opacity:.75; }
+
+  .akm-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+  .akm-item{ display:flex; flex-direction:column; gap:6px; padding:10px; border-radius:10px; background:rgba(255,255,255,.04); box-shadow:inset 0 0 10px rgba(0,0,0,.12); }
+  .akm-label{ display:flex; align-items:center; gap:.6em; font-size:13px; color:var(--sub); }
+  .akm-label svg{ width:13px; height:13px; opacity:.85; flex-shrink:0; }
+  .akm-value{ min-width:0; display:flex; flex-direction:column; gap:5px; }
+  .akm-v-row{ display:flex; align-items:baseline; gap:8px; font-size:14px; font-weight:500; color:#fff; font-variant-numeric:tabular-nums; }
+  .akm-band{ color:var(--sub); font-weight:400; font-size:12px; }
+  .akm-num{ margin-left:auto; font-weight:500; }
+  .akm-mid{ position:relative; height:8px; border-radius:999px; background:rgba(0,0,0,.35); border:1px solid var(--brd); overflow:visible; }
+  .akm-mid-line{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(255,255,255,.28); }
+  .akm-dot{ position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:#cfd6df; box-shadow:0 0 8px rgba(255,255,255,.4); transition:left .6s ease, background .6s ease, box-shadow .6s ease; }
+  .akm-text{ font-size:12px; line-height:1.7; color:var(--txt); white-space:pre-wrap; word-break:break-word; }
+  .akm-text.empty{ color:var(--dim); }
+  .akm-warn{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,209,102,.35); background:rgba(255,209,102,.08); font-size:12px; line-height:1.6; color:#e8c77a; }
+
+  /* 图库按钮：与角色名/日期同行 */
+  .akm-gal-btn{ margin-left:auto; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:var(--sub); font-size:11px; font-family:inherit; cursor:pointer; transition:border-color .2s, color .2s, background .2s; white-space:nowrap; flex-shrink:0; }
+  .akm-gal-btn:hover{ border-color:var(--acc); color:var(--acc); background:rgba(255,255,255,.1); }
+
+  /* 图库模式 */
+  .akm-gallery{ display:flex; flex-direction:column; gap:10px; }
+  .akm-gal-head{ display:grid; grid-template-columns:auto 1fr auto auto; align-items:center; gap:8px; }
+  .akm-gal-mid{ display:flex; justify-content:center; align-items:baseline; gap:8px; }
+  .akm-gal-mid b{ font-size:14px; font-weight:500; color:var(--acc); text-shadow:0 0 8px var(--acc-glow); }
+  .akm-gal-mid i{ font-style:normal; font-size:11px; color:var(--sub); }
+  .akm-gal-arrow{ width:22px; height:22px; border-radius:50%; border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.06); color:#fff; display:grid; place-items:center; cursor:pointer; transition:border-color .2s, background .2s; }
+  .akm-gal-arrow:hover{ border-color:var(--acc); background:rgba(255,255,255,.12); }
+  .akm-gal-arrow svg{ width:12px; height:12px; }
+  .akm-gal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .akm-gal-cell{ display:flex; flex-direction:column; gap:4px; }
+  .akm-gal-img{ width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:8px; border:1px solid var(--acc); box-shadow:0 0 6px var(--acc-glow); background:#0d0d0e; }
+  .akm-gal-name{ font-size:10px; text-align:center; color:var(--acc); letter-spacing:.5px; }
+  @media (max-width:480px){ .akm-card{ padding:12px; } .akm-main{ flex-direction:column; align-items:stretch; } .akm-pic-col{ width:100%; max-width:200px; margin:0 auto; } }
+</style>
+</head>
+<body>
+<div class="akm">
+  <div class="akm-card">
+    <div class="akm-main" id="akm-main">
+      <div class="akm-pic-col">
+        <div class="akm-flip" id="akm-flip">
+          <div class="akm-flip-inner">
+            <div class="akm-face akm-face-front">
+              <img class="akm-pic-bg" alt="" src="">
+              <img class="akm-pic" alt="" src="">
+            </div>
+            <div class="akm-face akm-face-back">
+              <img class="akm-pic-bg" alt="" src="">
+              <img class="akm-pic" alt="" src="">
+            </div>
+          </div>
+          <button class="akm-arrow akm-arrow-l" type="button" aria-label="上一个角色"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <button class="akm-arrow akm-arrow-r" type="button" aria-label="下一个角色"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        </div>
+        <div class="akm-pic-cap"><b id="akm-name">赤目</b><i id="akm-idx">1/3</i><i id="akm-time">Day1 早</i><button class="akm-gal-btn" id="akm-gal-btn" type="button">图库</button></div>
+        <div class="akm-flip-hint" id="akm-flip-hint" style="display:none">点图翻转 NSFW</div>
+      </div>
+
+      <div class="akm-info">
+        <div class="akm-item">
+          <div class="akm-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>临时好感</div>
+          <div class="akm-value">
+            <div class="akm-v-row"><span class="akm-band" id="akm-tmp-band">轻微认可</span><span class="akm-num" id="akm-tmp-num">0</span></div>
+            <div class="akm-mid"><div class="akm-mid-line"></div><div class="akm-dot" id="akm-tmp-dot" style="left:50%"></div></div>
+          </div>
+        </div>
+
+        <div class="akm-item">
+          <div class="akm-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.7 0-3.3-.5-4.6-1.4L3 20l1.4-4.9A8.5 8.5 0 1 1 21 11.5z"/></svg>心声</div>
+          <div class="akm-value"><div class="akm-text empty" id="akm-inner">——</div></div>
+        </div>
+
+        <div class="akm-item">
+          <div class="akm-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3l3 4-8 8-3 3-3 2 1-4 2-2z"/><path d="M3 11l2-2 10 10-2 2z"/></svg>服装</div>
+          <div class="akm-value"><div class="akm-text empty" id="akm-outfit">——</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="akm-gallery" id="akm-gallery" style="display:none">
+      <div class="akm-gal-head">
+        <button class="akm-gal-arrow" id="akm-gal-l" type="button" aria-label="上一个角色"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <div class="akm-gal-mid"><b id="akm-gal-name">赤目</b><i id="akm-gal-idx">1/3</i></div>
+        <button class="akm-gal-arrow" id="akm-gal-r" type="button" aria-label="下一个角色"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button class="akm-gal-btn" id="akm-gal-btn2" type="button">返回状态栏</button>
+      </div>
+      <div class="akm-gal-grid" id="akm-gal-grid"></div>
+    </div>
+
+    <div class="akm-warn" id="akm-warn" style="display:none">⚠ 未能读取到 MVU 变量（stat_data）。请确认：MVU 变量框架已安装并启用；占位符放在最新楼层（如 AI 最新回复或预设注入）</div>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  try {
+    function pathGet(obj, path, def) {
+      var cur = obj, parts = String(path).split('.');
+      for (var i = 0; i < parts.length; i++) {
+        if (cur === null || cur === undefined) return def;
+        cur = cur[parts[i]];
+      }
+      return (cur === null || cur === undefined) ? def : cur;
+    }
+    var root = document.currentScript && document.currentScript.previousElementSibling;
+    if (!root || !root.classList || !root.classList.contains('akm')) {
+      var all = document.querySelectorAll('.akm');
+      root = all.length ? all[all.length - 1] : null;
+    }
+    if (!root) return;
+    var el = function(sel){ return root.querySelector('#' + sel); };
+
+    /* 多路径读取 stat_data */
+    function readStat() {
+      /* 路径1: MVU 变量框架（消息楼层变量，从最新楼层往前找） */
+      try {
+        if (window.Mvu && typeof window.Mvu.getMvuData === 'function') {
+          for (var i = 1; i <= 3; i++) {
+            var v = window.Mvu.getMvuData({ type: 'message', message_id: -i });
+            var sd = v && v.stat_data;
+            if (sd && typeof sd === 'object') { console.info('[赤目状态栏] 读取来源: Mvu 倒数第' + i + '楼'); return sd; }
+          }
+        }
+      } catch (e) {}
+      /* 路径2: 酒馆助手变量接口 */
+      var th = window.TavernHelper;
+      if (th && typeof th.getVariables === 'function') {
+        try {
+          var v2 = th.getVariables() || th.getVariables({ type: 'message' });
+          if (v2 && v2.stat_data && typeof v2.stat_data === 'object') { console.info('[赤目状态栏] 读取来源: TavernHelper.getVariables'); return v2.stat_data; }
+        } catch (e) {}
+      }
+      if (typeof getAllVariables === 'function') {
+        try {
+          var v3 = getAllVariables() || {};
+          if (v3.stat_data && typeof v3.stat_data === 'object') { console.info('[赤目状态栏] 读取来源: getAllVariables'); return v3.stat_data; }
+        } catch (e) {}
+      }
+      /* 路径3: 酒馆原生 getvar */
+      if (typeof window.getvar === 'function') {
+        try {
+          var v4 = window.getvar('stat_data', { defaults: null });
+          if (v4 && typeof v4 === 'object') { console.info('[赤目状态栏] 读取来源: getvar'); return v4; }
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    /* CG 数据：imgs 为全部图片（画廊按此顺序与名称展示），pairs 为 sfw↔nsfw 固定对应（正面随机抽取一对，翻转显示背面） */
+    var CG = {
+      '赤目': {
+        imgs: {
+          '扫地': 'https://files.catbox.moe/udtqdn.png',
+          '贴符-1': 'https://files.catbox.moe/suh0g8.png',
+          '被动口交-1': 'https://files.catbox.moe/4tu2q5.png',
+          '被动口交-2': 'https://files.catbox.moe/rj4ezy.png',
+          '厨房': 'https://files.catbox.moe/6pek6c.png',
+          '料理': 'https://files.catbox.moe/lzscpo.png',
+          '喝茶': 'https://files.catbox.moe/yplz2b.png',
+          '挤奶': 'https://files.catbox.moe/bfhmr2.png',
+          '展示腋下': 'https://files.catbox.moe/772bj1.png',
+          '射在腋下': 'https://files.catbox.moe/j9dm47.png',
+          '生疏手交-1': 'https://files.catbox.moe/e9nipx.png',
+          '生疏手交-2': 'https://files.catbox.moe/cdgt4r.png',
+          '展示小穴': 'https://files.catbox.moe/0o2i2z.png',
+          '中出': 'https://files.catbox.moe/fbzioq.png',
+          '展示双脚': 'https://files.catbox.moe/tg08do.png',
+          '展示身体': 'https://files.catbox.moe/a9wu9c.png',
+          '邀请': 'https://files.catbox.moe/dtxhub.png',
+          '脱光': 'https://files.catbox.moe/b8tnpg.png',
+          '性交': 'https://files.catbox.moe/5buja6.png',
+        },
+        pairs: [
+          ['被动口交-1', '被动口交-2'], ['生疏手交-1', '生疏手交-2'], ['展示小穴', '中出'],
+          ['展示腋下', '射在腋下'], ['邀请', '性交'], ['料理', '厨房'], ['喝茶', '挤奶'],
+          ['扫地', '贴符'], ['展示双脚', '脱光'],
+        ],
+      },
+      '铃女': {
+        imgs: {
+          '人设-1': 'https://files.catbox.moe/4aitkr.png',
+          '口交诱惑-1': 'https://files.catbox.moe/lxnfhg.png',
+          '被踩': 'https://files.catbox.moe/5qtaaq.png',
+          '被捆绑': 'https://files.catbox.moe/mnr0qr.png',
+          '壁尻-1': 'https://files.catbox.moe/yj3xc1.png',
+          '壁尻-2': 'https://files.catbox.moe/4a2hwh.png',
+          '倒吊-1': 'https://files.catbox.moe/2bkvfz.png',
+          '倒吊-2': 'https://files.catbox.moe/qvjlwn.png',
+          '分身术-1': 'https://files.catbox.moe/h9dtam.png',
+          '分身术-2': 'https://files.catbox.moe/0kiub9.png',
+          '口交诱惑-2': 'https://files.catbox.moe/9vyxbd.png',
+          '人设-2': 'https://files.catbox.moe/1hda0a.png',
+          '玩绳子': 'https://files.catbox.moe/43b27q.png',
+          '玩水': 'https://files.catbox.moe/ygr6i4.png',
+          '展示腋下': 'https://files.catbox.moe/qy8gkp.png',
+          '足交': 'https://files.catbox.moe/bah4i5.png',
+        },
+        pairs: [
+          ['被踩', '足交'], ['分身术-1', '分身术-2'], ['倒吊-1', '倒吊-2'], ['壁尻-1', '壁尻-2'],
+          ['玩水', '展示腋下'], ['玩绳子', '被捆绑'], ['人设-1', '口交诱惑-1'], ['人设-2', '口交诱惑-2'],
+        ],
+      },
+      '斋藤圆': {
+        imgs: {
+          '人设': 'https://files.catbox.moe/vuh81e.png',
+          '训练完': 'https://files.catbox.moe/o7ukd8.png',
+          '脱衣': 'https://files.catbox.moe/i5s3g6.png',
+          '露腋': 'https://files.catbox.moe/ea9f2v.png',
+          '初夜': 'https://files.catbox.moe/2h3ti9.png',
+          '久居': 'https://files.catbox.moe/25mlpf.png',
+          '壁咚': 'https://files.catbox.moe/65b7xa.png',
+          '逆推': 'https://files.catbox.moe/00drco.png',
+          '自慰': 'https://files.catbox.moe/d1ufiu.png',
+          '瀑布': 'https://files.catbox.moe/pzmwq7.png',
+          '受伤': 'https://files.catbox.moe/ppjygn.png',
+          '警惕': 'https://files.catbox.moe/nqcxy7.png',
+        },
+        pairs: [
+          ['人设', '初夜'], ['警惕', '脱衣'], ['久居', '久居'], ['受伤', '自慰'],
+          ['训练完', '瀑布'], ['露腋', '逆推'],
+        ],
+      },
+    };
+    var CHARS = ['赤目', '铃女', '斋藤圆'];
+
+    function placeholderFor(nm) {
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320">'
+        + '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1d24"/><stop offset="1" stop-color="#0d0d0e"/></linearGradient></defs>'
+        + '<rect width="240" height="320" fill="url(#g)"/>'
+        + '<circle cx="120" cy="116" r="46" fill="#3f4350"/>'
+        + '<path d="M50 306 q10-74 70-74 q60 0 70 74 z" fill="#3f4350"/>'
+        + '<text x="120" y="278" text-anchor="middle" fill="#8b90a5" font-size="13" font-family="sans-serif" letter-spacing="3">' + nm + '</text>'
+        + '<text x="120" y="296" text-anchor="middle" fill="#5b6075" font-size="10" font-family="sans-serif" letter-spacing="2">立绘占位</text>'
+        + '</svg>';
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    var sdCache = null;
+    var autoIdx = 0;
+    var manualIdx = null;
+    var galIdx = 0;
+
+    /* 按角色序号渲染主视图（自动跟随或手动切换共用） */
+    function renderChar(idx) {
+      var name = CHARS[idx];
+      var sd = sdCache || {};
+      var getVar = function(p, d) { return pathGet(sd, p, d); };
+
+      var time = String(getVar('场景.时间', 'Day1 早'));
+      var tmp = parseInt(getVar('数值.' + name + '.临时好感', 0), 10);
+      if (!isFinite(tmp)) tmp = 0;
+      tmp = Math.max(-100, Math.min(100, tmp));
+      var inner = String(getVar('人物.' + name + '.内心想法', ''));
+      var outfit = String(getVar('人物.' + name + '.服装', ''));
+
+      /* 主题色（斋藤圆保持默认黑色主题） */
+      root.setAttribute('data-char', name);
+      el('akm-name').textContent = name;
+      el('akm-idx').textContent = (idx + 1) + '/' + CHARS.length;
+      el('akm-time').textContent = time;
+
+      /* 立绘：正面随机抽取一对的 sfw，背面为其固定对应的 nsfw */
+      var cd = CG[name] || { imgs: {}, pairs: [] };
+      var pairs = cd.pairs || [];
+      var pair = pairs.length ? pairs[Math.floor(Math.random() * pairs.length)] : null;
+      var ph = placeholderFor(name);
+      var flipEl = el('akm-flip');
+      var fronts = root.querySelectorAll('.akm-face-front .akm-pic, .akm-face-front .akm-pic-bg');
+      var backs = root.querySelectorAll('.akm-face-back .akm-pic, .akm-face-back .akm-pic-bg');
+      var sfw = pair ? (cd.imgs[pair[0]] || '') : '';
+      var nsfw = pair ? (cd.imgs[pair[1]] || '') : '';
+      flipEl.classList.remove('flipped');
+      flipEl.style.cursor = nsfw ? 'pointer' : 'default';
+      var hintEl = el('akm-flip-hint');
+      if (hintEl) hintEl.style.display = nsfw ? 'block' : 'none';
+      fronts.forEach(function(im) {
+        im.src = sfw || ph;
+        im.onerror = function() { im.onerror = null; im.src = ph; };
+      });
+      backs.forEach(function(im) {
+        im.src = nsfw || ph;
+        im.onerror = function() { im.onerror = null; im.src = ph; };
+      });
+      flipEl._nsfw = !!nsfw;
+
+      /* 临时好感：-100~100 十档 */
+      var BANDS = { 1:'暴怒', 2:'冷处理', 3:'厌恶', 4:'阻止', 5:'轻微不悦', 6:'轻微认可', 7:'窃喜', 8:'想要更多', 9:'心动害羞', 10:'一生一次的感动' };
+      var band = tmp <= -80 ? 1 : tmp <= -60 ? 2 : tmp <= -40 ? 3 : tmp <= -20 ? 4 : tmp < 0 ? 5 : tmp <= 20 ? 6 : tmp <= 40 ? 7 : tmp <= 60 ? 8 : tmp <= 80 ? 9 : 10;
+      var bandEl = el('akm-tmp-band');
+      var numEl = el('akm-tmp-num');
+      var dotEl = el('akm-tmp-dot');
+      bandEl.textContent = BANDS[band];
+      numEl.textContent = (tmp > 0 ? '+' : '') + tmp;
+      var pct = (tmp + 100) / 2;
+      dotEl.style.left = pct + '%';
+      var col = tmp < 0 ? '#7fa8f7' : '#ff9d5c';
+      dotEl.style.background = col;
+      dotEl.style.boxShadow = '0 0 8px ' + col;
+      bandEl.style.color = tmp < 0 ? '#8fb0f8' : '#f5a068';
+      numEl.style.color = col;
+
+      /* 心声与服装 */
+      var innerEl = el('akm-inner');
+      innerEl.textContent = inner || '——';
+      innerEl.classList.toggle('empty', !inner);
+      var outfitEl = el('akm-outfit');
+      outfitEl.textContent = outfit || '——';
+      outfitEl.classList.toggle('empty', !outfit);
+    }
+
+    /* 自动跟随当前互动角色（重新渲染时回到自动模式） */
+    function renderAll(sd) {
+      sdCache = sd;
+      var name = String(pathGet(sd, '场景.当前互动角色', '') || '').trim() || '赤目';
+      autoIdx = CHARS.indexOf(name);
+      if (autoIdx === -1) autoIdx = 0;
+      manualIdx = null;
+      renderChar(autoIdx);
+    }
+
+    /* 左右箭头：手动切换浏览 */
+    var btnL = root.querySelector('.akm-arrow-l'), btnR = root.querySelector('.akm-arrow-r');
+    function step(n) {
+      var base = manualIdx === null ? autoIdx : manualIdx;
+      manualIdx = (base + n + CHARS.length) % CHARS.length;
+      renderChar(manualIdx);
+    }
+    if (btnL) btnL.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); step(-1); });
+    if (btnR) btnR.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); step(1); });
+
+    /* 点击翻转 sfw/nsfw（仅有 nsfw 图的角色生效） */
+    var flipClickEl = el('akm-flip');
+    if (flipClickEl) {
+      flipClickEl.addEventListener('click', function() {
+        if (flipClickEl._nsfw) flipClickEl.classList.toggle('flipped');
+      });
+    }
+
+    /* ------- 图库模式 ------- */
+    function renderGallery(idx) {
+      var name = CHARS[idx];
+      root.setAttribute('data-char', name);
+      el('akm-gal-name').textContent = name;
+      el('akm-gal-idx').textContent = (idx + 1) + '/' + CHARS.length;
+      var grid = el('akm-gal-grid');
+      grid.innerHTML = '';
+      var cd = CG[name] || { imgs: {} };
+      var ph = placeholderFor(name);
+      Object.keys(cd.imgs).forEach(function(nm) {
+        var cell = document.createElement('div');
+        cell.className = 'akm-gal-cell';
+        var img = document.createElement('img');
+        img.className = 'akm-gal-img';
+        img.alt = nm;
+        img.loading = 'lazy';
+        img.src = cd.imgs[nm];
+        img.onerror = function() { img.onerror = null; img.src = ph; };
+        var cap = document.createElement('span');
+        cap.className = 'akm-gal-name';
+        cap.textContent = nm;
+        cell.appendChild(img);
+        cell.appendChild(cap);
+        grid.appendChild(cell);
+      });
+    }
+
+    var galleryOpen = false;
+    var galBtn = el('akm-gal-btn'), galBtn2 = el('akm-gal-btn2');
+    function setGalBtns(text) {
+      if (galBtn) galBtn.textContent = text;
+      if (galBtn2) galBtn2.textContent = text;
+    }
+    function toggleGallery() {
+      galleryOpen = !galleryOpen;
+      el('akm-main').style.display = galleryOpen ? 'none' : 'flex';
+      el('akm-gallery').style.display = galleryOpen ? 'flex' : 'none';
+      setGalBtns(galleryOpen ? '返回状态栏' : '图库');
+      if (galleryOpen) {
+        galIdx = manualIdx === null ? autoIdx : manualIdx;
+        renderGallery(galIdx);
+      }
+    }
+    if (galBtn) galBtn.addEventListener('click', toggleGallery);
+    if (galBtn2) galBtn2.addEventListener('click', toggleGallery);
+    var galL = el('akm-gal-l'), galR = el('akm-gal-r');
+    function galStep(n) {
+      galIdx = (galIdx + n + CHARS.length) % CHARS.length;
+      renderGallery(galIdx);
+    }
+    if (galL) galL.addEventListener('click', function(){ galStep(-1); });
+    if (galR) galR.addEventListener('click', function(){ galStep(1); });
+
+    var sd = readStat();
+    if (sd) {
+      renderAll(sd);
+    } else {
+      el('akm-warn').style.display = 'flex';
+      console.warn('[赤目状态栏] 未能读取到 stat_data：Mvu/TavernHelper/getvar 均不可用或无数据');
+      /* 消息可能尚未渲染完变量，延迟重试一次 */
+      setTimeout(function() {
+        var sd2 = readStat();
+        if (sd2) { el('akm-warn').style.display = 'none'; renderAll(sd2); }
+      }, 500);
+    }
+  } catch (e) { /* 酒馆环境缺失时静默 */ }
+})();
+</script>
+</body>
+</html>
