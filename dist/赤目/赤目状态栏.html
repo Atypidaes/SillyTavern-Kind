@@ -9,6 +9,7 @@
   /* 角色主题色：斋藤圆保持默认黑色 */
   .akm[data-char="赤目"]{ --acc:#f7b7cc; --acc-glow:rgba(247,183,204,.40); --card-bg:#1a1116; }
   .akm[data-char="铃女"]{ --acc:#b39bff; --acc-glow:rgba(179,155,255,.40); --card-bg:#14111e; }
+  .akm[data-char="梅里"]{ --acc:#f0d078; --acc-glow:rgba(240,208,120,.40); --card-bg:#1a160e; }
   .akm-card{ display:flex; flex-direction:column; gap:10px; max-width:600px; margin:0 auto; padding:16px; border:1px solid var(--brd); border-radius:12px; background:var(--card-bg); box-shadow:0 8px 20px rgba(0,0,0,.25); }
 
   /* 主体：左侧立绘，右侧信息 */
@@ -65,6 +66,7 @@
   .akm-gal-cell{ display:flex; flex-direction:column; gap:4px; }
   .akm-gal-img{ width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:8px; border:1px solid var(--acc); box-shadow:0 0 6px var(--acc-glow); background:#0d0d0e; }
   .akm-gal-name{ font-size:10px; text-align:center; color:var(--acc); letter-spacing:.5px; }
+  .akm-gal-empty{ display:flex; align-items:center; justify-content:center; height:80px; border-radius:8px; border:1px dashed var(--brd); color:var(--dim); font-size:11px; letter-spacing:1px; grid-column:1 / -1; }
   @media (max-width:480px){ .akm-card{ padding:12px; } .akm-main{ flex-direction:column; align-items:stretch; } .akm-pic-col{ width:100%; max-width:200px; margin:0 auto; } }
 </style>
 </head>
@@ -255,8 +257,12 @@
           ['训练完', '瀑布'], ['露腋', '逆推'],
         ],
       },
+      '梅里': {
+        imgs: {},
+        pairs: [],
+      },
     };
-    var CHARS = ['赤目', '铃女', '斋藤圆'];
+    var CHARS = ['赤目', '铃女', '斋藤圆', '梅里'];
 
     function placeholderFor(nm) {
       var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320">'
@@ -381,7 +387,15 @@
       grid.innerHTML = '';
       var cd = CG[name] || { imgs: {} };
       var ph = placeholderFor(name);
-      Object.keys(cd.imgs).forEach(function(nm) {
+      var keys = Object.keys(cd.imgs);
+      if (!keys.length) {
+        var emptyCell = document.createElement('div');
+        emptyCell.className = 'akm-gal-cell';
+        emptyCell.innerHTML = '<div class="akm-gal-empty">暂无CG</div>';
+        grid.appendChild(emptyCell);
+        return;
+      }
+      keys.forEach(function(nm) {
         var cell = document.createElement('div');
         cell.className = 'akm-gal-cell';
         var img = document.createElement('img');
