@@ -1,0 +1,342 @@
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>柳璃状态栏</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+  .akm{ --txt:#eaeaea; --sub:#9fa6b2; --dim:#6b7280; --warm:#ff9d5c; --cold:#7fa8f7; --brd:rgba(255,255,255,.10); --acc:#fff; --acc-glow:rgba(255,255,255,.10); --card-bg:#121212; font-family:'Inter','Noto Sans SC',system-ui,'PingFang SC','Microsoft YaHei',sans-serif; color:var(--txt); -webkit-font-smoothing:antialiased; }
+  /* 角色主题色：柳璃 */
+  .akm[data-char="柳璃"]{ --acc:#6fd9c8; --acc-glow:rgba(111,217,200,.40); --card-bg:#0e1a17; }
+  .akm-card{ display:flex; flex-direction:column; gap:10px; max-width:600px; margin:0 auto; padding:16px; border:1px solid var(--brd); border-radius:12px; background:var(--card-bg); box-shadow:0 8px 20px rgba(0,0,0,.25); }
+
+  /* 主体：左侧立绘，右侧信息 */
+  .akm-main{ display:flex; gap:12px; align-items:flex-start; }
+  .akm-pic-col{ width:36%; max-width:172px; min-width:104px; display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
+  /* 翻转卡片：正面 sfw，点击后翻到背面 nsfw */
+  .akm-flip{ position:relative; width:100%; aspect-ratio:3/4; border-radius:10px; perspective:800px; }
+  .akm-flip-inner{ position:absolute; inset:0; transform-style:preserve-3d; transition:transform .6s ease; }
+  .akm-flip.flipped .akm-flip-inner{ transform:rotateY(180deg); }
+  .akm-face{ position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden; border-radius:10px; overflow:hidden; border:1px solid var(--brd); background:#0d0d0e; box-shadow:inset 0 0 10px rgba(0,0,0,.45); }
+  .akm-face-back{ transform:rotateY(180deg); }
+  .akm-pic-bg{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(16px) brightness(.4); transform:scale(1.12); }
+  .akm-pic{ position:relative; width:100%; height:100%; object-fit:contain; display:block; }
+  .akm-pic-cap{ display:flex; align-items:center; gap:5px; padding:0 2px; }
+  .akm-pic-cap b{ font-size:14px; font-weight:500; color:var(--acc); text-shadow:0 0 8px var(--acc-glow); white-space:nowrap; }
+  .akm-pic-cap i{ font-style:normal; font-size:10px; color:var(--sub); font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .akm-flip-hint{ padding:0 2px; font-size:10px; letter-spacing:1px; color:var(--acc); opacity:.75; }
+
+  .akm-info{ flex:1; min-width:0; display:flex; flex-direction:column; gap:8px; }
+  .akm-item{ display:flex; flex-direction:column; gap:6px; padding:10px; border-radius:10px; background:rgba(255,255,255,.04); box-shadow:inset 0 0 10px rgba(0,0,0,.12); }
+  .akm-label{ display:flex; align-items:center; gap:.6em; font-size:13px; color:var(--sub); }
+  .akm-label svg{ width:13px; height:13px; opacity:.85; flex-shrink:0; }
+  .akm-value{ min-width:0; display:flex; flex-direction:column; gap:5px; }
+  .akm-v-row{ display:flex; align-items:baseline; gap:8px; font-size:14px; font-weight:500; color:#fff; font-variant-numeric:tabular-nums; }
+  .akm-band{ color:var(--sub); font-weight:400; font-size:12px; }
+  .akm-num{ margin-left:auto; font-weight:500; }
+  .akm-mid{ position:relative; height:8px; border-radius:999px; background:rgba(0,0,0,.35); border:1px solid var(--brd); overflow:visible; }
+  .akm-mid-line{ position:absolute; left:50%; top:-2px; bottom:-2px; width:1px; background:rgba(255,255,255,.28); }
+  .akm-dot{ position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; background:#cfd6df; box-shadow:0 0 8px rgba(255,255,255,.4); transition:left .6s ease, background .6s ease, box-shadow .6s ease; }
+  .akm-text{ font-size:12px; line-height:1.7; color:var(--txt); white-space:pre-wrap; word-break:break-word; }
+  .akm-text.empty{ color:var(--dim); }
+  .akm-warn{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,209,102,.35); background:rgba(255,209,102,.08); font-size:12px; line-height:1.6; color:#e8c77a; }
+
+  /* 对user看法：两段式指示，宠物 → 爱人 单向 */
+  .akm-seg{ display:flex; gap:6px; }
+  .akm-seg-item{ flex:1; text-align:center; padding:6px 0; border-radius:8px; border:1px solid var(--brd); font-size:12px; color:var(--dim); background:rgba(0,0,0,.2); transition:color .3s, border-color .3s, background .3s, box-shadow .3s; }
+  .akm-seg-item.on{ color:var(--acc); border-color:var(--acc); background:rgba(111,217,200,.10); box-shadow:0 0 8px var(--acc-glow); }
+
+  /* 图库按钮：与角色名/日期同行 */
+  .akm-gal-btn{ margin-left:auto; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:var(--sub); font-size:11px; font-family:inherit; cursor:pointer; transition:border-color .2s, color .2s, background .2s; white-space:nowrap; flex-shrink:0; }
+  .akm-gal-btn:hover{ border-color:var(--acc); color:var(--acc); background:rgba(255,255,255,.1); }
+
+  /* 图库模式 */
+  .akm-gallery{ display:flex; flex-direction:column; gap:10px; }
+  .akm-gal-head{ display:grid; grid-template-columns:1fr auto; align-items:center; gap:8px; }
+  .akm-gal-mid{ display:flex; justify-content:center; align-items:baseline; gap:8px; }
+  .akm-gal-mid b{ font-size:14px; font-weight:500; color:var(--acc); text-shadow:0 0 8px var(--acc-glow); }
+  .akm-gal-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .akm-gal-cell{ display:flex; flex-direction:column; gap:4px; }
+  .akm-gal-img{ width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:8px; border:1px solid var(--acc); box-shadow:0 0 6px var(--acc-glow); background:#0d0d0e; }
+  .akm-gal-name{ font-size:10px; text-align:center; color:var(--acc); letter-spacing:.5px; }
+  .akm-gal-empty{ display:flex; align-items:center; justify-content:center; height:80px; border-radius:8px; border:1px dashed var(--brd); color:var(--dim); font-size:11px; letter-spacing:1px; grid-column:1 / -1; }
+  @media (max-width:480px){ .akm-card{ padding:12px; } .akm-main{ flex-direction:column; align-items:stretch; } .akm-pic-col{ width:100%; max-width:200px; margin:0 auto; } }
+</style>
+</head>
+<body>
+<div class="akm">
+  <div class="akm-card">
+    <div class="akm-main" id="akm-main">
+      <div class="akm-pic-col">
+        <div class="akm-flip" id="akm-flip">
+          <div class="akm-flip-inner">
+            <div class="akm-face akm-face-front">
+              <img class="akm-pic-bg" alt="" src="">
+              <img class="akm-pic" alt="" src="">
+            </div>
+            <div class="akm-face akm-face-back">
+              <img class="akm-pic-bg" alt="" src="">
+              <img class="akm-pic" alt="" src="">
+            </div>
+          </div>
+        </div>
+        <div class="akm-pic-cap"><b id="akm-name">柳璃</b><i id="akm-time">Day1 早</i><button class="akm-gal-btn" id="akm-gal-btn" type="button">图库</button></div>
+        <div class="akm-flip-hint" id="akm-flip-hint" style="display:none">点图翻转 NSFW</div>
+      </div>
+
+      <div class="akm-info">
+        <div class="akm-item">
+          <div class="akm-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>对{{user}}的看法</div>
+          <div class="akm-value">
+            <div class="akm-seg">
+              <div class="akm-seg-item" id="akm-view-pet">宠物</div>
+              <div class="akm-seg-item" id="akm-view-lover">爱人</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="akm-item">
+          <div class="akm-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.7 0-3.3-.5-4.6-1.4L3 20l1.4-4.9A8.5 8.5 0 1 1 21 11.5z"/></svg>心声</div>
+          <div class="akm-value"><div class="akm-text empty" id="akm-inner">——</div></div>
+        </div>
+
+        <div class="akm-item">
+          <div class="akm-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 3l3 4-8 8-3 3-3 2 1-4 2-2z"/><path d="M3 11l2-2 10 10-2 2z"/></svg>服装</div>
+          <div class="akm-value"><div class="akm-text empty" id="akm-outfit">——</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="akm-gallery" id="akm-gallery" style="display:none">
+      <div class="akm-gal-head">
+        <div class="akm-gal-mid"><b id="akm-gal-name">柳璃</b></div>
+        <button class="akm-gal-btn" id="akm-gal-btn2" type="button">返回状态栏</button>
+      </div>
+      <div class="akm-gal-grid" id="akm-gal-grid"></div>
+    </div>
+
+    <div class="akm-warn" id="akm-warn" style="display:none">⚠ 未能读取到 MVU 变量（stat_data）。请确认：MVU 变量框架已安装并启用；占位符放在最新楼层（如 AI 最新回复或预设注入）</div>
+  </div>
+</div>
+<script>
+(function(){
+  'use strict';
+  try {
+    function pathGet(obj, path, def) {
+      var cur = obj, parts = String(path).split('.');
+      for (var i = 0; i < parts.length; i++) {
+        if (cur === null || cur === undefined) return def;
+        cur = cur[parts[i]];
+      }
+      return (cur === null || cur === undefined) ? def : cur;
+    }
+    var root = document.currentScript && document.currentScript.previousElementSibling;
+    if (!root || !root.classList || !root.classList.contains('akm')) {
+      var all = document.querySelectorAll('.akm');
+      root = all.length ? all[all.length - 1] : null;
+    }
+    if (!root) return;
+    var el = function(sel){ return root.querySelector('#' + sel); };
+
+    /* 多路径读取 stat_data */
+    function readStat() {
+      /* 路径1: MVU 变量框架（消息楼层变量，从最新楼层往前找） */
+      try {
+        if (window.Mvu && typeof window.Mvu.getMvuData === 'function') {
+          for (var i = 1; i <= 3; i++) {
+            var v = window.Mvu.getMvuData({ type: 'message', message_id: -i });
+            var sd = v && v.stat_data;
+            if (sd && typeof sd === 'object') { console.info('[柳璃状态栏] 读取来源: Mvu 倒数第' + i + '楼'); return sd; }
+          }
+        }
+      } catch (e) {}
+      /* 路径2: 酒馆助手变量接口 */
+      var th = window.TavernHelper;
+      if (th && typeof th.getVariables === 'function') {
+        try {
+          var v2 = th.getVariables() || th.getVariables({ type: 'message' });
+          if (v2 && v2.stat_data && typeof v2.stat_data === 'object') { console.info('[柳璃状态栏] 读取来源: TavernHelper.getVariables'); return v2.stat_data; }
+        } catch (e) {}
+      }
+      if (typeof getAllVariables === 'function') {
+        try {
+          var v3 = getAllVariables() || {};
+          if (v3.stat_data && typeof v3.stat_data === 'object') { console.info('[柳璃状态栏] 读取来源: getAllVariables'); return v3.stat_data; }
+        } catch (e) {}
+      }
+      /* 路径3: 酒馆原生 getvar */
+      if (typeof window.getvar === 'function') {
+        try {
+          var v4 = window.getvar('stat_data', { defaults: null });
+          if (v4 && typeof v4 === 'object') { console.info('[柳璃状态栏] 读取来源: getvar'); return v4; }
+        } catch (e) {}
+      }
+      return null;
+    }
+
+    /* CG 数据：柳璃暂无图片，imgs/pairs 留空，立绘走占位符 */
+    var CG = {
+      '柳璃': {
+        imgs: {
+
+        },
+        pairs: [
+
+        ],
+      },
+    };
+    var CHARS = ['柳璃'];
+
+    function placeholderFor(nm) {
+      var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320">'
+        + '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1d24"/><stop offset="1" stop-color="#0d0d0e"/></linearGradient></defs>'
+        + '<rect width="240" height="320" fill="url(#g)"/>'
+        + '<circle cx="120" cy="116" r="46" fill="#3f4350"/>'
+        + '<path d="M50 306 q10-74 70-74 q60 0 70 74 z" fill="#3f4350"/>'
+        + '<text x="120" y="278" text-anchor="middle" fill="#8b90a5" font-size="13" font-family="sans-serif" letter-spacing="3">' + nm + '</text>'
+        + '<text x="120" y="296" text-anchor="middle" fill="#5b6075" font-size="10" font-family="sans-serif" letter-spacing="2">立绘占位</text>'
+        + '</svg>';
+      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
+    var sdCache = null;
+    var galIdx = 0;
+
+    /* 渲染主视图（柳璃为唯一角色，无需切换） */
+    function renderChar() {
+      var name = CHARS[0];
+      var sd = sdCache || {};
+      var getVar = function(p, d) { return pathGet(sd, p, d); };
+
+      var time = String(getVar('场景.时间', 'Day1 早'));
+      var view = String(getVar('柳璃.对user的看法', '宠物'));
+      var inner = String(getVar('人物.柳璃.内心想法', ''));
+      var outfit = String(getVar('人物.柳璃.服装', ''));
+
+      /* 主题色 */
+      root.setAttribute('data-char', name);
+      el('akm-name').textContent = name;
+      el('akm-time').textContent = time;
+
+      /* 立绘：正面随机抽取一对的 sfw，背面为其固定对应的 nsfw；无图时占位 */
+      var cd = CG[name] || { imgs: {}, pairs: [] };
+      var pairs = cd.pairs || [];
+      var pair = pairs.length ? pairs[Math.floor(Math.random() * pairs.length)] : null;
+      var ph = placeholderFor(name);
+      var flipEl = el('akm-flip');
+      var fronts = root.querySelectorAll('.akm-face-front .akm-pic, .akm-face-front .akm-pic-bg');
+      var backs = root.querySelectorAll('.akm-face-back .akm-pic, .akm-face-back .akm-pic-bg');
+      var sfw = pair ? (cd.imgs[pair[0]] || '') : '';
+      var nsfw = pair ? (cd.imgs[pair[1]] || '') : '';
+      flipEl.classList.remove('flipped');
+      flipEl.style.cursor = nsfw ? 'pointer' : 'default';
+      var hintEl = el('akm-flip-hint');
+      if (hintEl) hintEl.style.display = nsfw ? 'block' : 'none';
+      fronts.forEach(function(im) {
+        im.src = sfw || ph;
+        im.onerror = function() { im.onerror = null; im.src = ph; };
+      });
+      backs.forEach(function(im) {
+        im.src = nsfw || ph;
+        im.onerror = function() { im.onerror = null; im.src = ph; };
+      });
+      flipEl._nsfw = !!nsfw;
+
+      /* 对user的看法：宠物/爱人 单向，点亮对应段 */
+      var isLover = view === '爱人';
+      el('akm-view-pet').classList.toggle('on', !isLover);
+      el('akm-view-lover').classList.toggle('on', isLover);
+
+      /* 心声与服装 */
+      var innerEl = el('akm-inner');
+      innerEl.textContent = inner || '——';
+      innerEl.classList.toggle('empty', !inner);
+      var outfitEl = el('akm-outfit');
+      outfitEl.textContent = outfit || '——';
+      outfitEl.classList.toggle('empty', !outfit);
+    }
+
+    function renderAll(sd) {
+      sdCache = sd;
+      renderChar();
+    }
+
+    /* 点击翻转 sfw/nsfw（仅有 nsfw 图时生效） */
+    var flipClickEl = el('akm-flip');
+    if (flipClickEl) {
+      flipClickEl.addEventListener('click', function() {
+        if (flipClickEl._nsfw) flipClickEl.classList.toggle('flipped');
+      });
+    }
+
+    /* ------- 图库模式 ------- */
+    function renderGallery() {
+      var name = CHARS[galIdx];
+      root.setAttribute('data-char', name);
+      el('akm-gal-name').textContent = name;
+      var grid = el('akm-gal-grid');
+      grid.innerHTML = '';
+      var cd = CG[name] || { imgs: {} };
+      var ph = placeholderFor(name);
+      var keys = Object.keys(cd.imgs);
+      if (!keys.length) {
+        var emptyCell = document.createElement('div');
+        emptyCell.className = 'akm-gal-cell';
+        emptyCell.innerHTML = '<div class="akm-gal-empty">暂无CG</div>';
+        grid.appendChild(emptyCell);
+        return;
+      }
+      keys.forEach(function(nm) {
+        var cell = document.createElement('div');
+        cell.className = 'akm-gal-cell';
+        var img = document.createElement('img');
+        img.className = 'akm-gal-img';
+        img.alt = nm;
+        img.loading = 'lazy';
+        img.src = cd.imgs[nm];
+        img.onerror = function() { img.onerror = null; img.src = ph; };
+        var cap = document.createElement('span');
+        cap.className = 'akm-gal-name';
+        cap.textContent = nm;
+        cell.appendChild(img);
+        cell.appendChild(cap);
+        grid.appendChild(cell);
+      });
+    }
+
+    var galleryOpen = false;
+    var galBtn = el('akm-gal-btn'), galBtn2 = el('akm-gal-btn2');
+    function setGalBtns(text) {
+      if (galBtn) galBtn.textContent = text;
+      if (galBtn2) galBtn2.textContent = text;
+    }
+    function toggleGallery() {
+      galleryOpen = !galleryOpen;
+      el('akm-main').style.display = galleryOpen ? 'none' : 'flex';
+      el('akm-gallery').style.display = galleryOpen ? 'flex' : 'none';
+      setGalBtns(galleryOpen ? '返回状态栏' : '图库');
+      if (galleryOpen) {
+        galIdx = 0;
+        renderGallery();
+      }
+    }
+    if (galBtn) galBtn.addEventListener('click', toggleGallery);
+    if (galBtn2) galBtn2.addEventListener('click', toggleGallery);
+
+    var sd = readStat();
+    if (sd) {
+      renderAll(sd);
+    } else {
+      el('akm-warn').style.display = 'flex';
+      console.warn('[柳璃状态栏] 未能读取到 stat_data：Mvu/TavernHelper/getvar 均不可用或无数据');
+      /* 消息可能尚未渲染完变量，延迟重试一次 */
+      setTimeout(function() {
+        var sd2 = readStat();
+        if (sd2) { el('akm-warn').style.display = 'none'; renderAll(sd2); }
+      }, 500);
+    }
+  } catch (e) { /* 酒馆环境缺失时静默 */ }
+})();
+</script>
+</body>
+</html>
