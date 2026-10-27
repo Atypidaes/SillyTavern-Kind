@@ -20,24 +20,13 @@
   .opn-bar.open{ border-color:rgba(255,255,255,.35); }
   .opn-bar.cur{ border-color:rgba(255,255,255,.45); background:rgba(255,255,255,.09); box-shadow:0 0 14px rgba(255,255,255,.12), inset 0 0 10px rgba(0,0,0,.12); }
   .opn-bar.off{ opacity:.4; cursor:not-allowed; }
-  .opn-bar-main{ display:grid; grid-template-columns:auto 1fr auto auto; column-gap:10px; align-items:center; padding:10px 12px; }
+  .opn-bar-main{ display:grid; grid-template-columns:auto 1fr auto; column-gap:10px; align-items:center; padding:10px 12px; }
   .opn-btn-no{ width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-size:12px; font-weight:600; color:var(--sub); border:1px solid rgba(255,255,255,.2); background:rgba(0,0,0,.3); }
   .opn-bar.cur .opn-btn-no{ color:#0e1a17; background:#fff; border-color:#fff; font-weight:700; }
   .opn-bar-txt{ font-size:13px; line-height:1.5; color:var(--sub); }
   .opn-bar.cur .opn-bar-txt{ color:var(--txt); }
   .opn-btn-tag{ font-size:10px; letter-spacing:1px; color:var(--dim); white-space:nowrap; }
   .opn-bar.cur .opn-btn-tag{ color:#fff; }
-  .opn-chev{ width:14px; height:14px; color:var(--dim); transition:transform .25s ease; }
-  .opn-bar.open .opn-chev{ transform:rotate(180deg); }
-
-  /* 展开区 */
-  .opn-expand{ display:none; padding:0 12px 12px; }
-  .opn-bar.open .opn-expand{ display:flex; flex-direction:column; gap:10px; }
-  .opn-expand-pic{ width:100%; border-radius:10px; overflow:hidden; border:1px solid var(--brd); background:#0d0d0e; box-shadow:inset 0 0 10px rgba(0,0,0,.45); }
-  .opn-expand-img{ display:block; width:100%; aspect-ratio:3/4; object-fit:contain; }
-  /* 跳转按钮：长条状占满整行 */
-  .opn-jump{ width:100%; padding:10px 0; border-radius:8px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.10); color:#fff; font-size:14px; font-weight:500; font-family:inherit; cursor:pointer; transition:background .2s, box-shadow .2s; }
-  .opn-jump:hover{ background:rgba(255,255,255,.22); box-shadow:0 0 10px rgba(255,255,255,.15); }
 
   /* DLC 开关 */
   .opn-dlc{ display:flex; flex-direction:column; gap:8px; }
@@ -67,11 +56,6 @@
           <span class="opn-btn-no">一</span>
           <span class="opn-bar-txt">（你误入了深山废村，村子里居然存在一位美丽的少女）</span>
           <span class="opn-btn-tag">当前开局</span>
-          <svg class="opn-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-        <div class="opn-expand">
-          <div class="opn-expand-pic"><img class="opn-expand-img" alt="" src=""></div>
-          <button class="opn-jump" type="button">跳转开场白</button>
         </div>
       </div>
       <div class="opn-bar" data-sw="2">
@@ -79,11 +63,6 @@
           <span class="opn-btn-no">二</span>
           <span class="opn-bar-txt">（原作开局，你于深山中迷路，最终停到了一间神社之前）</span>
           <span class="opn-btn-tag">当前开局</span>
-          <svg class="opn-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-        <div class="opn-expand">
-          <div class="opn-expand-pic"><img class="opn-expand-img" alt="" src=""></div>
-          <button class="opn-jump" type="button">跳转开场白</button>
         </div>
       </div>
       <div class="opn-bar" data-sw="3">
@@ -91,11 +70,6 @@
           <span class="opn-btn-no">三</span>
           <span class="opn-bar-txt">（你已经和柳璃发展成了同床共寝的关系，今早她在你的怀里）</span>
           <span class="opn-btn-tag">当前开局</span>
-          <svg class="opn-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-        <div class="opn-expand">
-          <div class="opn-expand-pic"><img class="opn-expand-img" alt="" src=""></div>
-          <button class="opn-jump" type="button">跳转开场白</button>
         </div>
       </div>
       <div class="opn-bar" data-sw="4">
@@ -103,11 +77,6 @@
           <span class="opn-btn-no">四</span>
           <span class="opn-bar-txt">（柳璃的肚子都已经被你弄大了）</span>
           <span class="opn-btn-tag">当前开局</span>
-          <svg class="opn-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
-        </div>
-        <div class="opn-expand">
-          <div class="opn-expand-pic"><img class="opn-expand-img" alt="" src=""></div>
-          <button class="opn-jump" type="button">跳转开场白</button>
         </div>
       </div>
     </div>
@@ -147,23 +116,6 @@
     var getChat = fn('getChatMessages');
     var setChat = fn('setChatMessages');
 
-    /* ★ 填写处③：各开场白插图（768x1024），按 swipe 序号填入链接，留空则显示占位图 */
-    var IMGS = {
-      '1': '',
-      '2': '',
-      '3': '',
-      '4': '',
-    };
-
-    var PH = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 1024">'
-      + '<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1d24"/><stop offset="1" stop-color="#0d0d0e"/></linearGradient></defs>'
-      + '<rect width="768" height="1024" fill="url(#g)"/>'
-      + '<circle cx="384" cy="420" r="150" fill="#3f4350"/>'
-      + '<path d="M160 1024 q44-240 224-240 q180 0 224 240 z" fill="#3f4350"/>'
-      + '<text x="384" y="880" text-anchor="middle" fill="#8b90a5" font-size="40" font-family="sans-serif" letter-spacing="8">插图占位</text>'
-      + '<text x="384" y="928" text-anchor="middle" fill="#5b6075" font-size="26" font-family="sans-serif" letter-spacing="4">768 x 1024</text>'
-      + '</svg>');
-
     /* 当前开局高亮：swipe0 为选择器所在开场白，不参与高亮；1~4 对应下方条目 */
     var curSw = -1, swipeCount = 0;
     if (getChat) {
@@ -183,35 +135,14 @@
     }
     paintSwipes();
 
-    /* 展开/收起：同一时间只展开一个；展开时懒加载插图 */
-    var opened = null;
+    /* 点击整条 bar 直接跳转到对应 swipe */
     bars.forEach(function(bar){
       bar.addEventListener('click', function(ev){
         if (bar.classList.contains('off')) return;
-        if (ev.target && ev.target.closest && ev.target.closest('.opn-jump')) return;
-        var wasOpen = bar.classList.contains('open');
-        if (opened) opened.classList.remove('open');
-        if (wasOpen) { opened = null; return; }
-        bar.classList.add('open');
-        opened = bar;
-        var img = bar.querySelector('.opn-expand-img');
-        if (img && !img.getAttribute('data-loaded')) {
-          img.setAttribute('data-loaded', '1');
-          var sw = bar.getAttribute('data-sw');
-          var src = IMGS[sw] || '';
-          img.onerror = function() { img.onerror = null; img.src = PH; };
-          img.src = src || PH;
-        }
+        var n = parseInt(bar.getAttribute('data-sw'), 10);
+        if (!setChat) return;
+        setChat([{ message_id: 0, swipe_id: n }]).catch(function(){});
       });
-      var jump = bar.querySelector('.opn-jump');
-      if (jump) {
-        jump.addEventListener('click', function(ev){
-          ev.stopPropagation();
-          var n = parseInt(bar.getAttribute('data-sw'), 10);
-          if (!setChat) return;
-          setChat([{ message_id: 0, swipe_id: n }]).catch(function(){});
-        });
-      }
     });
 
     /* ------- DLC 开关 ------- */
