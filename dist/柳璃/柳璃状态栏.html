@@ -53,11 +53,6 @@
   .akm-text.empty{ color:var(--dim); }
   .akm-warn{ display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,209,102,.35); background:rgba(255,209,102,.08); font-size:12px; line-height:1.6; color:#e8c77a; }
 
-  /* 对user看法：两段式指示，宠物 → 爱人 单向 */
-  .akm-seg{ display:flex; gap:6px; }
-  .akm-seg-item{ flex:1; text-align:center; padding:6px 0; border-radius:8px; border:1px solid var(--brd); font-size:12px; color:var(--dim); background:rgba(0,0,0,.2); transition:color .3s, border-color .3s, background .3s, box-shadow .3s; }
-  .akm-seg-item.on{ color:var(--acc); border-color:var(--acc); background:rgba(111,217,200,.10); box-shadow:0 0 8px var(--acc-glow); }
-
   /* 图库按钮：与角色名/日期同行 */
   .akm-gal-btn{ margin-left:auto; padding:4px 10px; border-radius:8px; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.06); color:var(--sub); font-size:11px; font-family:inherit; cursor:pointer; transition:border-color .2s, color .2s, background .2s; white-space:nowrap; flex-shrink:0; }
   .akm-gal-btn:hover{ border-color:var(--acc); color:var(--acc); background:rgba(255,255,255,.1); }
@@ -104,16 +99,6 @@
       </div>
 
       <div class="akm-info">
-        <div class="akm-item">
-          <div class="akm-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>对你的看法</div>
-          <div class="akm-value">
-            <div class="akm-seg">
-              <div class="akm-seg-item" id="akm-view-pet">宠物</div>
-              <div class="akm-seg-item" id="akm-view-lover">爱人</div>
-            </div>
-          </div>
-        </div>
-
         <div class="akm-item">
           <div class="akm-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5c-1.7 0-3.3-.5-4.6-1.4L3 20l1.4-4.9A8.5 8.5 0 1 1 21 11.5z"/></svg>心声</div>
           <div class="akm-value"><div class="akm-text empty" id="akm-inner">——</div></div>
@@ -200,11 +185,11 @@
     var CG = {
       '柳璃': {
         imgs: {
-          '废弃人设图1': 'https://files.catbox.moe/57hob4.png',
-          '废弃人设图2': 'https://files.catbox.moe/db3dux.png',
+          '废弃人设图1': 'https://files.catbox.moe/gswnyf.png',
+          '废弃人设图2': 'https://files.catbox.moe/j96kin.png',
         },
         pairs: {
-          '立绘': { sfw: 'https://files.catbox.moe/jpkf4a.png', nsfw: '' },
+          '立绘': { sfw: 'https://files.catbox.moe/ow7hxe.png', nsfw: '' },
         },
       },
     };
@@ -233,7 +218,6 @@
 
       var time = String(getVar('场景.时间', 'Day1 早'));
       var loc = String(getVar('场景.地点', ''));
-      var view = String(getVar('柳璃.对user的看法', '宠物'));
       var inner = String(getVar('人物.柳璃.内心想法', ''));
       var outfit = String(getVar('人物.柳璃.服装', ''));
 
@@ -270,11 +254,6 @@
         im.onerror = function() { im.onerror = null; im.src = ph; };
       });
       flipEl._nsfw = !!nsfw;
-
-      /* 对user的看法：宠物/爱人 单向，点亮对应段 */
-      var isLover = view === '爱人';
-      el('akm-view-pet').classList.toggle('on', !isLover);
-      el('akm-view-lover').classList.toggle('on', isLover);
 
       /* 心声与服装 */
       var innerEl = el('akm-inner');
