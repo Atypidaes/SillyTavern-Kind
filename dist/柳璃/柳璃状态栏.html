@@ -195,15 +195,17 @@
       return null;
     }
 
-    /* CG 数据：柳璃暂无图片，imgs/pairs 留空，立绘走占位符 */
+    /* CG 数据：imgs 为图库条目（点“图库”按钮展示）；pairs 为立绘主图（正面 sfw，背面 nsfw）。
+       pairs 留空时，主图自动取 imgs['立绘']；若 imgs 也没有则走占位符。 */
     var CG = {
       '柳璃': {
         imgs: {
-
+          '废弃人设图1': 'https://files.catbox.moe/gswnyf.png',
+          '废弃人设图2': 'https://files.catbox.moe/j96kin.png',
         },
-        pairs: [
-
-        ],
+        pairs: {
+          '立绘': { sfw: 'https://files.catbox.moe/ow7hxe.png', nsfw: '' },
+        },
       },
     };
     var CHARS = ['柳璃'];
@@ -244,16 +246,17 @@
       locEl.textContent = loc || '——';
       locEl.classList.toggle('empty', !loc);
 
-      /* 立绘：正面随机抽取一对的 sfw，背面为其固定对应的 nsfw；无图时占位 */
-      var cd = CG[name] || { imgs: {}, pairs: [] };
-      var pairs = cd.pairs || [];
-      var pair = pairs.length ? pairs[Math.floor(Math.random() * pairs.length)] : null;
+      /* 立绘：从 pairs 中随机抽一对 {sfw, nsfw}；无 pairs 时占位 */
+      var cd = CG[name] || { imgs: {}, pairs: {} };
+      var pairs = cd.pairs || {};
+      var pairKeys = Object.keys(pairs);
+      var pair = pairKeys.length ? pairs[pairKeys[Math.floor(Math.random() * pairKeys.length)]] : null;
       var ph = placeholderFor(name);
       var flipEl = el('akm-flip');
       var fronts = root.querySelectorAll('.akm-face-front .akm-pic, .akm-face-front .akm-pic-bg');
       var backs = root.querySelectorAll('.akm-face-back .akm-pic, .akm-face-back .akm-pic-bg');
-      var sfw = pair ? (cd.imgs[pair[0]] || '') : '';
-      var nsfw = pair ? (cd.imgs[pair[1]] || '') : '';
+      var sfw = pair ? (pair.sfw || '') : '';
+      var nsfw = pair ? (pair.nsfw || '') : '';
       flipEl.classList.remove('flipped');
       flipEl.style.cursor = nsfw ? 'pointer' : 'default';
       var hintEl = el('akm-flip-hint');
