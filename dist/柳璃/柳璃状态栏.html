@@ -10,6 +10,18 @@
   .akm[data-char="柳璃"]{ --acc:#6fd9c8; --acc-glow:rgba(111,217,200,.40); --card-bg:#0e1a17; }
   .akm-card{ display:flex; flex-direction:column; gap:10px; max-width:600px; margin:0 auto; padding:16px; border:1px solid var(--brd); border-radius:12px; background:var(--card-bg); box-shadow:0 8px 20px rgba(0,0,0,.25); }
 
+  /* 折叠头：始终可见，点击展开/收起主体 */
+  .akm-fold{ display:flex; flex-direction:column; gap:10px; }
+  .akm-fold-head{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04); box-shadow:inset 0 0 10px rgba(0,0,0,.12); cursor:pointer; transition:border-color .2s, background .2s; user-select:none; }
+  .akm-fold-head:hover{ background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.2); }
+  .akm-fold-time{ font-size:13px; font-weight:500; color:var(--acc); text-shadow:0 0 8px var(--acc-glow); white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .akm-fold-loc{ flex:1; min-width:0; font-size:12px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .akm-fold-loc.empty{ color:var(--dim); }
+  .akm-chev{ width:14px; height:14px; color:var(--dim); transition:transform .25s ease; flex-shrink:0; }
+  .akm-fold.open .akm-chev{ transform:rotate(180deg); }
+  .akm-fold-body{ display:none; flex-direction:column; gap:10px; }
+  .akm-fold.open .akm-fold-body{ display:flex; }
+
   /* 主体：左侧立绘，右侧信息 */
   .akm-main{ display:flex; gap:12px; align-items:flex-start; }
   .akm-pic-col{ width:36%; max-width:172px; min-width:104px; display:flex; flex-direction:column; gap:6px; flex-shrink:0; }
@@ -66,6 +78,13 @@
 <body>
 <div class="akm">
   <div class="akm-card">
+    <div class="akm-fold" id="akm-fold">
+      <div class="akm-fold-head" id="akm-fold-head">
+        <span class="akm-fold-time" id="akm-time">Day1 早</span>
+        <span class="akm-fold-loc empty" id="akm-loc">——</span>
+        <svg class="akm-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="akm-fold-body">
     <div class="akm-main" id="akm-main">
       <div class="akm-pic-col">
         <div class="akm-flip" id="akm-flip">
@@ -80,7 +99,7 @@
             </div>
           </div>
         </div>
-        <div class="akm-pic-cap"><b id="akm-name">柳璃</b><i id="akm-time">Day1 早</i><button class="akm-gal-btn" id="akm-gal-btn" type="button">图库</button></div>
+        <div class="akm-pic-cap"><b id="akm-name">柳璃</b><button class="akm-gal-btn" id="akm-gal-btn" type="button">图库</button></div>
         <div class="akm-flip-hint" id="akm-flip-hint" style="display:none">点图翻转 NSFW</div>
       </div>
 
@@ -116,6 +135,8 @@
     </div>
 
     <div class="akm-warn" id="akm-warn" style="display:none">⚠ 未能读取到 MVU 变量（stat_data）。请确认：MVU 变量框架已安装并启用；占位符放在最新楼层（如 AI 最新回复或预设注入）</div>
+      </div><!-- /akm-fold-body -->
+    </div><!-- /akm-fold -->
   </div>
 </div>
 <script>
@@ -209,6 +230,7 @@
       var getVar = function(p, d) { return pathGet(sd, p, d); };
 
       var time = String(getVar('场景.时间', 'Day1 早'));
+      var loc = String(getVar('场景.地点', ''));
       var view = String(getVar('柳璃.对user的看法', '宠物'));
       var inner = String(getVar('人物.柳璃.内心想法', ''));
       var outfit = String(getVar('人物.柳璃.服装', ''));
@@ -216,7 +238,11 @@
       /* 主题色 */
       root.setAttribute('data-char', name);
       el('akm-name').textContent = name;
+      /* 时间与地点：写入折叠头（始终可见） */
       el('akm-time').textContent = time;
+      var locEl = el('akm-loc');
+      locEl.textContent = loc || '——';
+      locEl.classList.toggle('empty', !loc);
 
       /* 立绘：正面随机抽取一对的 sfw，背面为其固定对应的 nsfw；无图时占位 */
       var cd = CG[name] || { imgs: {}, pairs: [] };
@@ -259,6 +285,14 @@
     function renderAll(sd) {
       sdCache = sd;
       renderChar();
+    }
+
+    /* ------- 折叠/展开主体（默认折叠，头部时间地点始终可见） ------- */
+    var foldEl = el('akm-fold'), foldHead = el('akm-fold-head');
+    if (foldHead) {
+      foldHead.addEventListener('click', function() {
+        if (foldEl) foldEl.classList.toggle('open');
+      });
     }
 
     /* 点击翻转 sfw/nsfw（仅有 nsfw 图时生效） */
